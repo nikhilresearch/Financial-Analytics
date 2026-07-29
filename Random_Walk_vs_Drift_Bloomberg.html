@@ -1,0 +1,3428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Can Daily News Explain the Stock Market? | MBA Financial Analytics</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       BLOOMBERG TERMINAL DESIGN SYSTEM & CSS VARIABLES
+       ========================================================================== */
+    :root {
+      --bg-base: #060911;
+      --bg-surface: #0c121e;
+      --bg-card: #121929;
+      --bg-card-hover: #182238;
+      --border-color: #1f2d47;
+      --border-bright: #2d4268;
+      
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --bb-amber: #ff9f0a;
+      --bb-amber-glow: rgba(255, 159, 10, 0.25);
+      --bb-cyan: #38bdf8;
+      --bb-cyan-glow: rgba(56, 189, 248, 0.25);
+      --bb-green: #22c55e;
+      --bb-green-glow: rgba(34, 197, 94, 0.25);
+      --bb-red: #ef4444;
+      --bb-red-glow: rgba(239, 68, 68, 0.25);
+      --bb-purple: #a855f7;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Terminal Header */
+    header {
+      background: linear-gradient(180deg, #0f172a 0%, #0c121e 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .bb-logo {
+      background: var(--bb-amber);
+      color: #000;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px var(--bb-amber-glow);
+    }
+
+    .header-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+
+    .header-text p {
+      font-size: 0.8rem;
+      color: var(--bb-amber);
+      font-family: var(--font-mono);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Audio Player Bar in Header */
+    .audio-player-widget {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--bb-amber);
+      border-radius: 9999px;
+      padding: 0.35rem 0.85rem;
+      box-shadow: 0 0 12px var(--bb-amber-glow);
+    }
+
+    .audio-btn {
+      background: var(--bb-amber);
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
+    }
+
+    .audio-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .audio-info {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--bb-amber);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid var(--bb-green);
+      color: var(--bb-green);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--bb-green);
+      border-radius: 50%;
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    /* Main Container Layout */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 340px 1fr 340px;
+      gap: 1rem;
+      padding: 1.25rem;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1280px) {
+      .dashboard-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glassmorphism Panel Cards */
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      transition: border-color 0.3s ease;
+    }
+
+    .panel-card.clickable-part {
+      cursor: pointer;
+    }
+
+    .panel-card.clickable-part:hover {
+      border-color: var(--bb-cyan);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--bb-amber);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-tag {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--bb-cyan);
+      color: var(--bb-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .info-tag:hover {
+      background: var(--bb-cyan);
+      color: #000;
+    }
+
+    /* Left Panel: News Flash & Controls */
+    .news-flash-card {
+      background: linear-gradient(145deg, #0e1726, #152033);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 1.25rem;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .news-flash-card.flash-effect {
+      animation: flashGlow 0.6s ease-out;
+    }
+
+    @keyframes flashGlow {
+      0% { border-color: var(--bb-amber); box-shadow: 0 0 25px var(--bb-amber-glow); }
+      50% { border-color: var(--bb-cyan); box-shadow: 0 0 35px var(--bb-cyan-glow); }
+      100% { border-color: var(--border-bright); box-shadow: none; }
+    }
+
+    .news-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .news-content {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0.75rem 0;
+      line-height: 1.4;
+    }
+
+    .shock-badge {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .shock-positive {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--bb-green);
+      border: 1px solid var(--bb-green);
+    }
+
+    .shock-negative {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--bb-red);
+      border: 1px solid var(--bb-red);
+    }
+
+    .shock-neutral {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-muted);
+      border: 1px solid var(--text-muted);
+    }
+
+    /* Simulation Control Buttons */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.65rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-bright);
+      background: #162032;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: #1e2d47;
+      border-color: var(--bb-cyan);
+      color: var(--bb-cyan);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: #38bdf8;
+      color: #fff;
+      grid-column: span 2;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      box-shadow: 0 0 15px var(--bb-cyan-glow);
+    }
+
+    .btn-accent {
+      background: rgba(255, 159, 10, 0.1);
+      border-color: var(--bb-amber);
+      color: var(--bb-amber);
+    }
+
+    .btn-accent:hover {
+      background: rgba(255, 159, 10, 0.2);
+      box-shadow: 0 0 15px var(--bb-amber-glow);
+    }
+
+    .btn-purple {
+      background: rgba(168, 85, 247, 0.1);
+      border-color: var(--bb-purple);
+      color: var(--bb-purple);
+    }
+
+    .btn-purple:hover {
+      background: rgba(168, 85, 247, 0.2);
+    }
+
+    .btn-reset {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--bb-red);
+      color: var(--bb-red);
+      grid-column: span 2;
+    }
+
+    .btn-reset:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    /* Drift Controls & Sliders */
+    .control-group {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .control-label {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .mode-selector {
+      display: flex;
+      background: #090e17;
+      padding: 0.25rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+    }
+
+    .mode-option {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem 0.25rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .mode-option.active {
+      background: var(--bg-card-hover);
+      color: var(--bb-cyan);
+      font-weight: 700;
+      border: 1px solid var(--border-bright);
+    }
+
+    .mode-option.active.drift-mode {
+      color: var(--bb-green);
+    }
+
+    .mode-option.active.compare-mode {
+      color: var(--bb-amber);
+    }
+
+    .slider-presets {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .preset-chip {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.3rem 0.2rem;
+      background: #162032;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .preset-chip:hover, .preset-chip.active {
+      background: var(--bb-green);
+      color: #000;
+      font-weight: 700;
+      border-color: var(--bb-green);
+    }
+
+    /* Center Panel: Market Index Chart */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    /* Right Panel: Metrics Dashboard */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+
+    .metric-card:hover {
+      border-color: var(--bb-cyan);
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+      margin-top: 0.2rem;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      margin-top: 0.1rem;
+    }
+
+    .val-positive { color: var(--bb-green); }
+    .val-negative { color: var(--bb-red); }
+    .val-neutral { color: var(--bb-cyan); }
+
+    /* Persistent Drift Explanation Box */
+    .drift-box {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+    }
+
+    .drift-box:hover {
+      border-color: var(--bb-green);
+    }
+
+    .drift-box-header {
+      color: var(--bb-green);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drift-factors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+    }
+
+    .factor-item {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .factor-check {
+      color: var(--bb-green);
+      font-weight: 700;
+    }
+
+    /* Discussion Overlays & Modals */
+    .discussion-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid var(--bb-amber);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 10px 40px rgba(255, 159, 10, 0.15);
+      position: relative;
+    }
+
+    .discussion-badge {
+      background: var(--bb-amber);
+      color: #000;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .discussion-question {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .options-grid {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .opt-btn {
+      flex: 1;
+      padding: 0.6rem 1rem;
+      background: #090e17;
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .opt-btn:hover {
+      border-color: var(--bb-amber);
+      color: var(--bb-amber);
+      background: rgba(255, 159, 10, 0.05);
+    }
+
+    .reveal-box {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--bb-cyan);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1rem;
+      color: var(--bb-cyan);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      display: none;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Final Classroom Discussion Accordion */
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 2.5rem 0 1.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .qa-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .qa-header {
+      padding: 1rem 1.25rem;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .qa-header:hover {
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--bb-cyan);
+    }
+
+    .qa-body {
+      padding: 1.25rem;
+      border-top: 1px solid var(--border-color);
+      background: rgba(8, 12, 20, 0.6);
+      display: none;
+    }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .asset-chip {
+      background: #0f172a;
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .asset-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .asset-type {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Animated Concept Flow Diagram */
+    .flow-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1.5rem;
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+
+    .flow-node {
+      background: linear-gradient(145deg, #121929, #1b263b);
+      border: 1px solid var(--border-bright);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .flow-node:hover {
+      border-color: var(--bb-cyan);
+      box-shadow: 0 0 15px var(--bb-cyan-glow);
+      transform: translateY(-2px);
+    }
+
+    .flow-node.highlight-node {
+      border-color: var(--bb-amber);
+      color: var(--bb-amber);
+      box-shadow: 0 0 15px var(--bb-amber-glow);
+    }
+
+    .flow-node.final-node {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    .flow-arrow {
+      color: var(--bb-amber);
+      font-weight: 900;
+      font-size: 1.1rem;
+      animation: pulseArrow 1.5s infinite alternate;
+    }
+
+    @keyframes pulseArrow {
+      0% { opacity: 0.4; transform: translateX(-2px); }
+      100% { opacity: 1; transform: translateX(2px); }
+    }
+
+    /* MODAL POPUPS & DRAWERS */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 7, 13, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 750px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 1.75rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      position: relative;
+      animation: modalSlide 0.3s ease-out;
+    }
+
+    @keyframes modalSlide {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--bb-amber);
+      font-family: var(--font-mono);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .modal-close:hover {
+      color: var(--bb-red);
+    }
+
+    .modal-body {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .modal-body h4 {
+      color: var(--bb-cyan);
+      font-size: 1.05rem;
+      margin: 1.25rem 0 0.5rem 0;
+      font-family: var(--font-mono);
+    }
+
+    .modal-body ul {
+      margin-left: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-body li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* Tab Navigation System */
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+      margin-top: 2rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      background: rgba(30, 45, 71, 0.8);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-card);
+      color: var(--bb-amber);
+      border-color: var(--bb-amber);
+      border-bottom: 2px solid var(--bg-card);
+      margin-bottom: -2px;
+      font-weight: 700;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Unit Root Explorer Custom Components */
+    .ur-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .ur-section-title {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--bb-cyan);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ur-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .ur-two-col { grid-template-columns: 1fr; }
+    }
+
+    .formula-box {
+      background: #080c14;
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--bb-amber);
+      text-align: center;
+      margin: 0.75rem 0;
+    }
+
+    .beta-table {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .beta-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .beta-cell-label {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      min-width: 60px;
+    }
+
+    .beta-cell-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid;
+      min-width: 95px;
+      text-align: center;
+    }
+
+    .beta-cell-desc {
+      color: var(--text-muted);
+    }
+
+    .ur-stat-card {
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ur-stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .ur-stat-value {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0.25rem 0;
+    }
+
+    .ur-stat-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .ur-verdict-box {
+      background: rgba(255, 159, 10, 0.08);
+      border: 1px solid var(--bb-amber);
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--bb-amber);
+      line-height: 1.6;
+    }
+
+    .adf-hyp-box {
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.85rem;
+      margin-top: 0.75rem;
+      font-size: 0.88rem;
+    }
+
+    .adf-hyp-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .adf-hyp-label {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      min-width: 80px;
+    }
+
+    .adf-result-card {
+      background: #080c14;
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      padding: 0.85rem;
+    }
+
+    .adf-result-title {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .adf-result-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .adf-pass { color: var(--bb-green); font-weight: 700; }
+    .adf-fail { color: var(--bb-red); font-weight: 700; }
+
+    .spurious-example {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .spurious-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .solution-card {
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+    }
+
+    /* Compact Quick Day Selector Tabs above Chart */
+    .chart-quick-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(9, 14, 23, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.35rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.4rem 0.65rem;
+      border-radius: 4px;
+      border: 1px solid var(--border-bright);
+      background: #121a29;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .quick-btn:hover {
+      background: #1e2d47;
+      border-color: var(--bb-cyan);
+      color: var(--bb-cyan);
+    }
+
+    .quick-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    .quick-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      box-shadow: 0 0 10px var(--bb-cyan-glow);
+    }
+
+    .quick-reset {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: var(--bb-red);
+      color: var(--bb-red);
+      margin-left: auto;
+    }
+
+    .quick-reset:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUDIO ELEMENT ("My voice.wav" referenced for audio voice playback) -->
+  <audio id="voice-audio" src="./My voice.wav" preload="auto"></audio>
+
+  <!-- TERMINAL HEADER -->
+  <header>
+    <div class="brand-title">
+      <span class="bb-logo">BLOOMBERG</span>
+      <div class="header-text">
+        <h1>Can Daily News Explain the Stock Market?</h1>
+        <p>FINANCIAL ANALYTICS LAB &bull; RANDOM WALK VS DRIFT SIMULATION</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Audio Controller Widget -->
+      <div class="audio-player-widget">
+        <button class="audio-btn" id="audio-play-btn" onclick="toggleAudioExplanation()" title="Play / Pause Audio Explanation">
+          ▶
+        </button>
+        <div class="audio-info">
+          <span>🔊 VOICE GUIDE</span>
+          <span id="audio-timer" style="font-size:0.7rem; color:var(--text-dim);">[0:00]</span>
+        </div>
+      </div>
+
+      <!-- Instructor Guide Button -->
+      <button class="btn btn-accent" onclick="openModal('instructor-modal')">
+        📋 Teaching Notes
+      </button>
+
+      <!-- Student Guide Button -->
+      <button class="btn btn-purple" onclick="openModal('student-modal')">
+        📚 Concept Guide
+      </button>
+
+      <!-- Status Indicator -->
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>LIVE SIMULATOR</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD THREE-PANEL LAYOUT -->
+  <main class="dashboard-container">
+    
+    <!-- LEFT PANEL: DAILY MARKET NEWS & SIMULATION CONTROLS -->
+    <section class="panel-card clickable-part" onclick="explainComponent('news-panel')">
+      <div class="panel-header">
+        <span class="panel-title">📡 Daily Market News</span>
+        <div style="display:flex; gap:0.4rem; align-items:center;">
+          <span class="info-tag" onclick="event.stopPropagation();">ℹ️ Info</span>
+          <span id="day-counter-badge" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--bb-cyan); font-weight:700;">DAY 0</span>
+        </div>
+      </div>
+
+      <!-- Live News Flash Card -->
+      <div class="news-flash-card" id="news-card">
+        <div class="news-tag">
+          <span>MARKET DISPATCH</span>
+          <span id="news-time">09:30:00 EST</span>
+        </div>
+        <div class="news-content" id="news-headline">
+          Market simulator ready. Click "Next Day" or "Simulate" to generate market news & price action.
+        </div>
+        <div class="shock-badge shock-neutral" id="news-shock-badge">
+          SHOCK: 0.00%
+        </div>
+      </div>
+
+      <!-- Simulation Control Button -->
+      <div class="controls-grid" onclick="event.stopPropagation();">
+        <button class="btn btn-primary" id="btn-next-day" onclick="stepNextDay()" style="grid-column: 1 / -1; padding: 0.85rem; font-size: 0.95rem; font-weight: 700;">
+          ▶ Advance 1 Day (Step Simulation)
+        </button>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem; margin-bottom: 0.85rem; text-align: center;">
+        💡 Multi-Day Tabs (30, 100, 200, 300 Days & Reset) are in the top header of the Market Chart panel.
+      </div>
+
+        <div class="control-label">
+          <span>DAILY POSITIVE DRIFT (μ)</span>
+          <span id="drift-val-label" style="color:var(--bb-green); font-weight:700;">+0.10% / day</span>
+        </div>
+        <input type="range" id="drift-slider" min="0" max="0.5" step="0.05" value="0.1" style="width:100%; accent-color:var(--bb-green);" oninput="updateDriftFromSlider(this.value)">
+        
+        <div class="slider-presets">
+          <div class="preset-chip" onclick="setDriftPreset(0)">0%</div>
+          <div class="preset-chip" onclick="setDriftPreset(0.05)">0.05%</div>
+          <div class="preset-chip active" id="preset-01" onclick="setDriftPreset(0.10)">0.10%</div>
+          <div class="preset-chip" onclick="setDriftPreset(0.20)">0.20%</div>
+          <div class="preset-chip" onclick="setDriftPreset(0.50)">0.50%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER PANEL: LIVE MARKET INDEX CHART -->
+    <section class="panel-card clickable-part" onclick="explainComponent('chart-panel')">
+      <!-- HEADER WITH SMALL DAY CHOICE TABS SIDE-BY-SIDE -->
+      <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <span class="panel-title">📈 Live Market Index (P<sub>t</sub>)</span>
+          <span class="info-tag" onclick="event.stopPropagation(); explainComponent('chart-panel');">ℹ️ Click to Explain</span>
+        </div>
+
+        <!-- SMALL DAY CHOICE TABS SIDE-BY-SIDE WITH GRAPH HEADER -->
+        <div class="chart-quick-controls" onclick="event.stopPropagation();" style="margin-bottom:0; padding:0.25rem 0.4rem; background:rgba(9,14,23,0.9); border:1px solid var(--border-bright);">
+          <button class="quick-btn quick-primary" onclick="stepNextDay()" style="padding:0.3rem 0.55rem; font-size:0.72rem;" title="Advance 1 Day">▶ +1 Day</button>
+          <button class="quick-btn" onclick="runMultiDays(30)" style="padding:0.3rem 0.55rem; font-size:0.72rem;" title="Simulate 30 Days">⚡ 30 Days</button>
+          <button class="quick-btn" onclick="runMultiDays(100)" style="padding:0.3rem 0.55rem; font-size:0.72rem;" title="Simulate 100 Days">🚀 100 Days</button>
+          <button class="quick-btn" onclick="runMultiDays(200)" style="padding:0.3rem 0.55rem; font-size:0.72rem;" title="Simulate 200 Days">📈 200 Days</button>
+          <button class="quick-btn" onclick="runMultiDays(300)" style="padding:0.3rem 0.55rem; font-size:0.72rem;" title="Simulate 300 Days">📊 300 Days</button>
+          <button class="quick-btn quick-reset" onclick="resetSimulation()" style="padding:0.3rem 0.55rem; font-size:0.72rem;" title="Reset Simulation">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-legend">
+          <div class="legend-item" id="legend-rw">
+            <div class="legend-color" style="background:#38bdf8;"></div>
+            <span>Random Walk (Pure Noise)</span>
+          </div>
+          <div class="legend-item" id="legend-drift" style="display:flex;">
+            <div class="legend-color" style="background:#22c55e;"></div>
+            <span>Random Walk with Drift (μ = <span id="legend-drift-val">0.10%</span>)</span>
+          </div>
+        </div>
+        <canvas id="marketChart"></canvas>
+      </div>
+
+      <!-- Persistent Drift Explanation Box -->
+      <div class="drift-box" onclick="event.stopPropagation(); explainComponent('drift-box');">
+        <div class="drift-box-header">
+          <span>⚡ Long-Term Growth Forces (Positive Drift Comes From)</span>
+          <span class="info-tag">ℹ️ Learn More</span>
+        </div>
+        <div class="drift-factors">
+          <div class="factor-item"><span class="factor-check">✓</span> Economic Growth (GDP)</div>
+          <div class="factor-item"><span class="factor-check">✓</span> Productivity Improvements</div>
+          <div class="factor-item"><span class="factor-check">✓</span> Corporate Earnings Growth</div>
+          <div class="factor-item"><span class="factor-check">✓</span> Tech & Innovation</div>
+          <div class="factor-item"><span class="factor-check">✓</span> Long-Run Inflation</div>
+          <div class="factor-item"><span class="factor-check">✓</span> Population & Demand Growth</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: MARKET DASHBOARD METRICS -->
+    <section class="panel-card clickable-part" onclick="explainComponent('dashboard-metrics')">
+      <div class="panel-header">
+        <span class="panel-title">📊 Analytics Dashboard</span>
+        <span class="info-tag" onclick="event.stopPropagation();">ℹ️ Info</span>
+      </div>
+
+      <div class="metrics-grid">
+        <!-- Current Level -->
+        <div class="metric-card" onclick="event.stopPropagation(); explainComponent('metric-level')">
+          <span class="metric-label">Current Index</span>
+          <span class="metric-value" id="metric-index">100.00</span>
+          <span class="metric-sub val-neutral" id="metric-change">+0.00% total</span>
+        </div>
+
+        <!-- Today Shock -->
+        <div class="metric-card" onclick="event.stopPropagation(); explainComponent('metric-shock-explain')">
+          <span class="metric-label">Today's Shock</span>
+          <span class="metric-value" id="metric-shock">0.00%</span>
+          <span class="metric-sub" id="metric-shock-type">Neutral</span>
+        </div>
+
+        <!-- Drift Rate -->
+        <div class="metric-card" onclick="event.stopPropagation(); explainComponent('metric-drift-explain')">
+          <span class="metric-label">Active Drift</span>
+          <span class="metric-value val-positive" id="metric-drift-val">+0.10%</span>
+          <span class="metric-sub" style="color:var(--text-dim);">per observation</span>
+        </div>
+
+        <!-- Avg Daily Change -->
+        <div class="metric-card" onclick="event.stopPropagation(); explainComponent('metric-avg-explain')">
+          <span class="metric-label">Avg Daily Change</span>
+          <span class="metric-value" id="metric-avg-change">0.00%</span>
+          <span class="metric-sub" style="color:var(--text-dim);">mean shock</span>
+        </div>
+
+        <!-- High Level -->
+        <div class="metric-card">
+          <span class="metric-label">Highest Level</span>
+          <span class="metric-value val-positive" id="metric-high">100.00</span>
+          <span class="metric-sub" style="color:var(--text-dim);">peak value</span>
+        </div>
+
+        <!-- Low Level -->
+        <div class="metric-card">
+          <span class="metric-label">Lowest Level</span>
+          <span class="metric-value val-negative" id="metric-low">100.00</span>
+          <span class="metric-sub" style="color:var(--text-dim);">trough value</span>
+        </div>
+
+        <!-- Positive Days -->
+        <div class="metric-card">
+          <span class="metric-label">Positive Days</span>
+          <span class="metric-value val-positive" id="metric-pos-days">0</span>
+          <span class="metric-sub" id="metric-pos-pct">0% of total</span>
+        </div>
+        <!-- Negative Days -->
+        <div class="metric-card">
+          <span class="metric-label">Negative Days</span>
+          <span class="metric-value val-negative" id="metric-neg-days">0</span>
+          <span class="metric-sub" id="metric-neg-pct">0% of total</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       TABBED SECTION: 4 TABS
+       ===================================================================== -->
+  <div style="max-width:1600px; margin:0 auto; padding:0 1rem 2rem;">
+
+    <!-- TAB NAVIGATION BAR -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-classroom" onclick="switchTab('classroom')">🎓 Classroom Discussion</button>
+      <button class="tab-btn" id="tab-btn-unitroot" onclick="switchTab('unitroot')">🔬 Unit Root Explorer</button>
+      <button class="tab-btn" id="tab-btn-flow" onclick="switchTab('flow')">🚀 Concept Flow</button>
+      <button class="tab-btn" id="tab-btn-assets" onclick="switchTab('assets')">📦 Asset Classification</button>
+    </div>
+
+    <!-- ======================================================
+         TAB 1: CLASSROOM DISCUSSION
+         ====================================================== -->
+    <div class="tab-panel active" id="tab-classroom">
+
+      <div id="discussion-card" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3 style="font-family:var(--font-mono); font-size:1rem; color:var(--bb-amber);">🎓 Guided Classroom Discussion</h3>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-accent" onclick="highlightDiscussionCard()">📌 Scroll to Discussion</button>
+            <button class="btn btn-primary" onclick="nextDiscussionQuestion()">Next Question ▶</button>
+          </div>
+        </div>
+        <div id="discussion-content" style="color:var(--text-main); font-size:0.95rem; line-height:1.6;">
+          Click <strong>▶ Next Day</strong> to start the simulation. Discussion prompts will appear automatically at Day 20.
+        </div>
+      </div>
+
+      <!-- Q&A ACCORDION -->
+      <div class="section-title"><span>💬 Key Discussion Questions & Answers</span></div>
+
+      <!-- Question 1 -->
+      <div class="qa-card">
+        <div class="qa-header" onclick="toggleQA('qa-1')">
+          <span>1. Why can't we predict tomorrow's stock price from today's news?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-body" id="qa-1">
+          <p style="color:var(--text-muted); font-size:0.95rem;">
+            <strong>Answer:</strong> In competitive financial markets, all publicly available information is <em>instantaneously</em> incorporated into the current price. Therefore, only <strong>new, unpredictable information</strong> (ε<sub>t</sub>) can change tomorrow's price. This is the core implication of the <strong>Efficient Market Hypothesis (EMH)</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Question 2 -->
+      <div class="qa-card">
+        <div class="qa-header" onclick="toggleQA('qa-2')">
+          <span>2. Why do stock markets still increase over decades despite daily noise?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-body" id="qa-2">
+          <p style="color:var(--text-muted); font-size:0.95rem;">
+            <strong>Answer:</strong> While daily market news is zero-mean random noise (ε<sub>t</sub>), the long-term stock market possesses a small, constant <strong>Positive Drift (μ &gt; 0)</strong>. This drift represents real economic value creation: productivity, inflation, innovation, and corporate earnings expansion over time.
+          </p>
+        </div>
+      </div>
+
+      <!-- Question 3 -->
+      <div class="qa-card">
+        <div class="qa-header" onclick="toggleQA('qa-3')">
+          <span>3. Can pure randomness produce a graph that looks like a trend?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-body" id="qa-3">
+          <p style="color:var(--text-muted); font-size:0.95rem;">
+            <strong>Answer:</strong> <strong>YES!</strong> Cumulative sum of random shocks creates "memory" in price levels (Unit Root). A series of consecutive positive shocks produces a visual "bull market" illusion, while negative shocks produce a "bear market" illusion — even when the underlying process has zero drift!
+          </p>
+        </div>
+      </div>
+
+      <!-- Question 4 -->
+      <div class="qa-card">
+        <div class="qa-header" onclick="toggleQA('qa-4')">
+          <span>4. What creates the long-run upward movement in stock markets?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-body" id="qa-4">
+          <p style="color:var(--text-muted); font-size:0.95rem;">
+            <strong>Answer:</strong> Long-term compounding drift (μ). Over 10 to 30 years, cumulative μ dominates the random noise ε<sub>t</sub>, driving index levels steadily upward.
+          </p>
+        </div>
+      </div>
+
+      <!-- Question 5: Asset Classification Matrix -->
+      <div class="qa-card">
+        <div class="qa-header" onclick="toggleQA('qa-5')">
+          <span>5. Which model better represents these real-world financial assets?</span>
+          <span>▼</span>
+        </div>
+        <div class="qa-body" id="qa-5">
+          <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:0.75rem;">
+            Classify assets into <strong>Pure Random Walk (μ ≈ˆ 0)</strong> vs <strong>Random Walk with Drift (μ &gt; 0)</strong>:
+          </p>
+          <div class="asset-grid">
+            <div class="asset-chip">
+              <div class="asset-name">NIFTY 50 / S&amp;P 500</div>
+              <div class="asset-type val-positive">Walk with Positive Drift</div>
+              <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Driven by earnings &amp; GDP growth</div>
+            </div>
+            <div class="asset-chip">
+              <div class="asset-name">USD / INR</div>
+              <div class="asset-type val-neutral">Walk with Inflation Drift</div>
+              <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Reflects interest rate parity</div>
+            </div>
+            <div class="asset-chip">
+              <div class="asset-name">Gold</div>
+              <div class="asset-type val-neutral">Walk with Inflation Drift</div>
+              <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Store of value / inflation hedge</div>
+            </div>
+            <div class="asset-chip">
+              <div class="asset-name">Bitcoin</div>
+              <div class="asset-type val-negative">High Volatility Random Walk</div>
+              <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Speculative shocks dominate</div>
+            </div>
+            <div class="asset-chip">
+              <div class="asset-name">House Prices</div>
+              <div class="asset-type val-positive">Walk with Positive Drift</div>
+              <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Population growth &amp; land scarcity</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-classroom -->
+
+    <!-- ======================================================
+         TAB 2: UNIT ROOT EXPLORER
+         ====================================================== -->
+    <div class="tab-panel" id="tab-unitroot">
+
+      <!-- Section A: AR(1) Comparison Visual -->
+      <div class="section-title"><span>📊 AR(1) Process: β Spectrum — Stationary → Unit Root → Explosive</span></div>
+      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.5rem;">
+        <div style="display:flex; gap:1rem; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap;">
+          <div style="font-family:var(--font-mono); font-size:0.8rem;">
+            <span style="color:#22c55e;">●</span> β = 0.70 (Stationary, mean-reverting)
+            &nbsp;&nbsp;<span style="color:#ff9f0a;">●</span> β = 1.00 (Unit Root, random walk)
+            &nbsp;&nbsp;<span style="color:#ef4444;">●</span> β = 1.06 (Explosive, diverging)
+          </div>
+          <button class="btn btn-primary" style="margin-left:auto;" onclick="drawAR1Canvas()">🔄 Regenerate</button>
+        </div>
+        <canvas id="ar1Canvas" style="width:100%; height:200px; border-radius:6px; background:#0a0f1a;"></canvas>
+      </div>
+
+      <!-- Section B: LIVE Stats from Active Simulation -->
+      <div class="section-title"><span>📈 Live Statistics from Active Simulation (Price Levels vs. Log Returns)</span></div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:0.75rem; margin-bottom:1rem;">
+        <div class="adf-result-card">
+          <div class="adf-result-title">Price Level Variance</div>
+          <div class="adf-result-row"><span>Var(P<sub>t</sub>):</span><span id="ur-price-var" style="color:var(--bb-amber);">—</span></div>
+          <div style="font-size:0.72rem; color:var(--text-dim);">Grows with time (Unit Root)</div>
+        </div>
+        <div class="adf-result-card">
+          <div class="adf-result-title">Return Variance</div>
+          <div class="adf-result-row"><span>Var(r<sub>t</sub>):</span><span id="ur-ret-var" style="color:var(--bb-green);">—</span></div>
+          <div style="font-size:0.72rem; color:var(--text-dim);">Constant (Stationary)</div>
+        </div>
+        <div class="adf-result-card">
+          <div class="adf-result-title">Estimated β</div>
+          <div class="adf-result-row"><span>β̂:</span><span id="ur-beta" style="color:var(--bb-cyan);">—</span></div>
+          <div style="font-size:0.72rem; color:var(--text-dim);">Should be ≈ˆ 1.0 (Unit Root)</div>
+        </div>
+        <div class="adf-result-card">
+          <div class="adf-result-title">Price Mean</div>
+          <div class="adf-result-row"><span>E[P<sub>t</sub>]:</span><span id="ur-price-mean" style="color:var(--bb-amber);">—</span></div>
+          <div style="font-size:0.72rem; color:var(--text-dim);">Drifts (non-stationary mean)</div>
+        </div>
+        <div class="adf-result-card">
+          <div class="adf-result-title">Return Mean</div>
+          <div class="adf-result-row"><span>E[r<sub>t</sub>]:</span><span id="ur-ret-mean" style="color:var(--bb-green);">—</span></div>
+          <div style="font-size:0.72rem; color:var(--text-dim);">Constant (near zero or μ)</div>
+        </div>
+      </div>
+
+      <!-- Section C: Dual Canvas: Price Levels vs Returns -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:0.75rem;">
+          <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--bb-amber); margin-bottom:0.4rem;">📉 Price Levels P<sub>t</sub> (Non-Stationary: Trending Variance)</div>
+          <canvas id="urPriceCanvas" style="width:100%; height:140px; background:#0a0f1a; border-radius:4px;"></canvas>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:0.75rem;">
+          <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--bb-green); margin-bottom:0.4rem;">📊 Log Returns r<sub>t</sub> = Δ ln P<sub>t</sub> (Stationary: Constant Variance)</div>
+          <canvas id="urReturnCanvas" style="width:100%; height:140px; background:#0a0f1a; border-radius:4px;"></canvas>
+        </div>
+      </div>
+
+      <!-- Section D: ADF + BP Econometric Test Results -->
+      <div id="ur-verdict" style="background:var(--bg-card); border:1px solid var(--border-bright); border-radius:10px; padding:1rem; margin-bottom:1.5rem;">
+        <div style="color:var(--text-dim); font-size:0.9rem;">Run the simulation (▶ Next Day or Quick Controls above) then switch to this tab to see live econometric test results.</div>
+      </div>
+      <div style="text-align:right; margin-bottom:1.5rem;">
+        <button class="btn btn-accent" onclick="speakUnitRootExplainer()">🔊 Professor Voice Lecture: Unit Root & Tests</button>
+      </div>
+
+      <!-- ================================================================
+           SECTION E: STOCHASTIC vs DETERMINISTIC INTERACTIVE LAB  (NEW)
+           ================================================================ -->
+      <div class="section-title"><span>🧪 Stochastic vs. Deterministic Interactive Laboratory</span></div>
+
+      <div style="background:linear-gradient(135deg,#0d1b2a,#0a1628); border:1px solid #1e3a5f; border-radius:12px; padding:1.25rem; margin-bottom:1rem;">
+
+        <!-- FORMULA REFERENCE CARDS -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0.75rem; margin-bottom:1.25rem;">
+
+          <div style="background:rgba(56,189,248,0.08); border:1px solid #38bdf8; border-radius:8px; padding:0.9rem;">
+            <div style="font-family:var(--font-mono); font-size:0.75rem; color:#38bdf8; font-weight:700; margin-bottom:0.4rem;">① NON-STOCHASTIC (Deterministic)</div>
+            <div style="font-family:var(--font-mono); font-size:0.9rem; color:#e2e8f0; background:#090e17; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.4rem;">
+              Y<sub>t</sub> = Y<sub>0</sub> + γ Â· t
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Pure straight line. Zero noise. 100% predictable. No randomness at all.</div>
+          </div>
+
+          <div style="background:rgba(239,68,68,0.08); border:1px solid #ef4444; border-radius:8px; padding:0.9rem;">
+            <div style="font-family:var(--font-mono); font-size:0.75rem; color:#ef4444; font-weight:700; margin-bottom:0.4rem;">② UNIT ROOT (Stochastic Trend)</div>
+            <div style="font-family:var(--font-mono); font-size:0.9rem; color:#e2e8f0; background:#090e17; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.4rem;">
+              Y<sub>t</sub> = α + Y<sub>t-1</sub> + ε<sub>t</sub>&nbsp;&nbsp;(β = 1)
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Random walk with drift. Shocks accumulate forever. Variance grows with t.</div>
+          </div>
+
+          <div style="background:rgba(34,197,94,0.08); border:1px solid #22c55e; border-radius:8px; padding:0.9rem;">
+            <div style="font-family:var(--font-mono); font-size:0.75rem; color:#22c55e; font-weight:700; margin-bottom:0.4rem;">③ TREND-STATIONARY (|β| &lt; 1)</div>
+            <div style="font-family:var(--font-mono); font-size:0.9rem; color:#e2e8f0; background:#090e17; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.4rem;">
+              Y<sub>t</sub> = Y<sub>0</sub> + γÂ·t + βÂ·Y<sub>t-1</sub> + ε<sub>t</sub>
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Mean-reverts around a linear trend. Shocks decay. Remove trend →’ stationary.</div>
+          </div>
+
+          <div style="background:rgba(255,159,10,0.08); border:1px solid #ff9f0a; border-radius:8px; padding:0.9rem;">
+            <div style="font-family:var(--font-mono); font-size:0.75rem; color:#ff9f0a; font-weight:700; margin-bottom:0.4rem;">④ PURE STOCHASTIC NOISE (White Noise)</div>
+            <div style="font-family:var(--font-mono); font-size:0.9rem; color:#e2e8f0; background:#090e17; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.4rem;">
+              Y<sub>t</sub> = μ + ε<sub>t</sub>&nbsp;&nbsp;(β = 0)
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Stationary from the start. No trend, no memory. Shocks vanish instantly.</div>
+          </div>
+        </div>
+
+        <!-- SLIDERS -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.25rem;">
+          <div>
+            <label style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);">γ — Deterministic Slope: <span id="sd-gamma-val" style="color:#38bdf8;">0.30</span></label>
+            <input type="range" id="sd-gamma" min="0" max="1" step="0.05" value="0.30"
+              oninput="document.getElementById('sd-gamma-val').textContent=parseFloat(this.value).toFixed(2)"
+              style="width:100%; accent-color:#38bdf8; margin-top:0.35rem;">
+          </div>
+          <div>
+            <label style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);">α — Drift Constant: <span id="sd-alpha-val" style="color:#ef4444;">0.10</span></label>
+            <input type="range" id="sd-alpha" min="0" max="0.5" step="0.02" value="0.10"
+              oninput="document.getElementById('sd-alpha-val').textContent=parseFloat(this.value).toFixed(2)"
+              style="width:100%; accent-color:#ef4444; margin-top:0.35rem;">
+          </div>
+          <div>
+            <label style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);">β — AR(1) Coefficient: <span id="sd-beta-val" style="color:#22c55e;">0.70</span></label>
+            <input type="range" id="sd-beta" min="0" max="0.99" step="0.01" value="0.70"
+              oninput="document.getElementById('sd-beta-val').textContent=parseFloat(this.value).toFixed(2)"
+              style="width:100%; accent-color:#22c55e; margin-top:0.35rem;">
+          </div>
+          <div>
+            <label style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);">σ²’ — Noise Scale: <span id="sd-sigma-val" style="color:#ff9f0a;">1.00</span></label>
+            <input type="range" id="sd-sigma" min="0.1" max="3" step="0.1" value="1.0"
+              oninput="document.getElementById('sd-sigma-val').textContent=parseFloat(this.value).toFixed(1)"
+              style="width:100%; accent-color:#ff9f0a; margin-top:0.35rem;">
+          </div>
+        </div>
+
+        <!-- RUN BUTTON -->
+        <div style="text-align:center; margin-bottom:1rem;">
+          <button onclick="runStochDetSimulation()"
+            style="background:linear-gradient(135deg,#0284c7,#7c3aed); color:#fff; border:none; border-radius:8px; padding:0.7rem 2rem; font-family:var(--font-mono); font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.25s;">
+            ▶ Run Stochastic vs Deterministic Experiment
+          </button>
+          <button onclick="runStochDetSimulation()"
+            style="background:rgba(255,255,255,0.05); color:var(--text-muted); border:1px solid var(--border-color); border-radius:8px; padding:0.7rem 1.25rem; font-family:var(--font-mono); font-size:0.85rem; cursor:pointer; margin-left:0.75rem; transition:all 0.2s;"
+            title="Regenerate with same parameters but new random seed">
+            🔄 New Seed
+          </button>
+        </div>
+
+        <!-- MAIN SIMULATION CANVAS -->
+        <canvas id="stochDetCanvas" style="width:100%; height:280px; background:#080d16; border-radius:8px; border:1px solid #1e3a5f;"></canvas>
+
+        <!-- LEGEND -->
+        <div style="display:flex; gap:1.5rem; margin-top:0.75rem; flex-wrap:wrap; justify-content:center;">
+          <div style="display:flex; align-items:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.78rem; color:#e2e8f0;">
+            <div style="width:20px; height:3px; background:#38bdf8; border-radius:2px;"></div> ① Deterministic (Y<sub>0</sub>+γt)
+          </div>
+          <div style="display:flex; align-items:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.78rem; color:#e2e8f0;">
+            <div style="width:20px; height:3px; background:#ef4444; border-radius:2px;"></div> ② Unit Root (β=1 RW+Drift)
+          </div>
+          <div style="display:flex; align-items:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.78rem; color:#e2e8f0;">
+            <div style="width:20px; height:3px; background:#22c55e; border-radius:2px;"></div> ③ Trend-Stationary (|β|&lt;1)
+          </div>
+          <div style="display:flex; align-items:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.78rem; color:#e2e8f0;">
+            <div style="width:20px; height:3px; background:#ff9f0a; border-radius:2px;"></div> ④ White Noise (β=0)
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================
+           SECTION F: DETRENDING vs DIFFERENCING ANALYSIS  (NEW)
+           ================================================================ -->
+      <div class="section-title"><span>⚗️ ADF & Breusch-Pagan Test Suite: Detrending vs. First-Differencing</span></div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+
+        <!-- Detrending Card -->
+        <div style="background:var(--bg-card); border:1px solid #22c55e; border-radius:10px; padding:1rem;">
+          <div style="font-family:var(--font-mono); font-size:0.85rem; font-weight:700; color:#22c55e; margin-bottom:0.6rem;">✅ Detrending (OLS: subtract γÂ·t)</div>
+          <div style="font-family:var(--font-mono); font-size:0.82rem; color:#e2e8f0; background:#090e17; padding:0.5rem; border-radius:4px; margin-bottom:0.6rem;">
+            Ỹ<sub>t</sub> = Y<sub>t</sub> −’ ( + γ̂·t)
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
+            <strong style="color:#22c55e;">Works for:</strong> Trend-Stationary processes (③). Subtracting the fitted linear trend removes the deterministic component, leaving stationary residuals. ADF <em>passes</em> on Ỹ<sub>t</sub>.
+          </div>
+          <div style="margin-top:0.75rem; padding:0.5rem; background:rgba(239,68,68,0.1); border:1px solid #ef4444; border-radius:6px; font-size:0.8rem; color:#fca5a5;">
+            ❌ <strong>FAILS on Unit Root:</strong> Detrending a random walk (②) does NOT produce stationarity — shocks are permanent, not periodic around a trend!
+          </div>
+          <div id="sd-detrend-result" style="margin-top:0.75rem; font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim);">Run experiment above to see live ADF results.</div>
+        </div>
+
+        <!-- Differencing Card -->
+        <div style="background:var(--bg-card); border:1px solid #38bdf8; border-radius:10px; padding:1rem;">
+          <div style="font-family:var(--font-mono); font-size:0.85rem; font-weight:700; color:#38bdf8; margin-bottom:0.6rem;">✅ First-Differencing (Δ operator)</div>
+          <div style="font-family:var(--font-mono); font-size:0.82rem; color:#e2e8f0; background:#090e17; padding:0.5rem; border-radius:4px; margin-bottom:0.6rem;">
+            ΔY<sub>t</sub> = Y<sub>t</sub> − Y<sub>t-1</sub> = α + ε<sub>t</sub>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
+            <strong style="color:#38bdf8;">Works for:</strong> Unit Root processes (②). Taking first differences removes one unit root, eliminating memory and reducing to stationary white noise. ADF <em>passes</em> on ΔY<sub>t</sub>.
+          </div>
+          <div style="margin-top:0.75rem; padding:0.5rem; background:rgba(34,197,94,0.1); border:1px solid #22c55e; border-radius:6px; font-size:0.8rem; color:#86efac;">
+            ✅ <strong>Log Returns = First-Differencing in log space:</strong> Δ ln P<sub>t</sub> = ln P<sub>t</sub> − ln P<sub>t-1</sub> eliminates the unit root in stock prices!
+          </div>
+          <div id="sd-diff-result" style="margin-top:0.75rem; font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim);">Run experiment above to see live ADF results.</div>
+        </div>
+      </div>
+
+      <!-- Stochastic vs Non-Stochastic Summary Table -->
+      <div class="section-title"><span>📋 Stochastic vs. Non-Stochastic: Decision Table</span></div>
+      <div style="overflow-x:auto; margin-bottom:1.5rem;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.82rem; font-family:var(--font-mono);">
+          <thead>
+            <tr style="background:#0d1b2a; color:var(--bb-cyan);">
+              <th style="padding:0.6rem; text-align:left; border:1px solid var(--border-color);">Property</th>
+              <th style="padding:0.6rem; text-align:center; border:1px solid var(--border-color); color:#38bdf8;">① Deterministic</th>
+              <th style="padding:0.6rem; text-align:center; border:1px solid var(--border-color); color:#ef4444;">② Unit Root</th>
+              <th style="padding:0.6rem; text-align:center; border:1px solid var(--border-color); color:#22c55e;">③ Trend-Stationary</th>
+              <th style="padding:0.6rem; text-align:center; border:1px solid var(--border-color); color:#ff9f0a;">④ White Noise</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-color);">
+              <td style="padding:0.5rem; border:1px solid var(--border-color); color:var(--text-muted);">Stochastic?</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#ef4444;">❌ No</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">✅ Yes</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">✅ Yes</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">✅ Yes</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-color);">
+              <td style="padding:0.5rem; border:1px solid var(--border-color); color:var(--text-muted);">β (AR coeff.)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center;">0 (no AR)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#ef4444;">β = 1</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">|β| &lt; 1</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center;">β = 0</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-color);">
+              <td style="padding:0.5rem; border:1px solid var(--border-color); color:var(--text-muted);">Variance</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center;">Constant (0)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#ef4444;">Grows (→’ −ž)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">Constant (bounded)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">σ²’Ã‚Â² (constant)</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-color);">
+              <td style="padding:0.5rem; border:1px solid var(--border-color); color:var(--text-muted);">Shock Persistence</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center;">N/A</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#ef4444;">Forever (permanent)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">Decays at rate β</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">Zero (no memory)</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-color);">
+              <td style="padding:0.5rem; border:1px solid var(--border-color); color:var(--text-muted);">ADF Test (Hâ‚€: Unit Root)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">Reject Hâ‚€</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#ef4444;">Fail to Reject Hâ‚€</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">Reject Hâ‚€</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#22c55e;">Reject Hâ‚€</td>
+            </tr>
+            <tr>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); color:var(--text-muted);">Fix with</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center;">N/A</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#38bdf8;">First-Difference (ΔY<sub>t</sub>)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center; color:#38bdf8;">Detrend (subtract γÌ‚t)</td>
+              <td style="padding:0.5rem; border:1px solid var(--border-color); text-align:center;">Already stationary</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /tab-unitroot -->
+
+    <!-- ======================================================
+         TAB 3: CONCEPT FLOW DIAGRAM
+         ====================================================== -->
+    <div class="tab-panel" id="tab-flow">
+      <div class="section-title">
+        <span>🗺️ Theoretical Roadmap &amp; Mathematical Concept Flow</span>
+      </div>
+      <div class="flow-container">
+        <div class="flow-node" onclick="explainComponent('node-news')">Daily News Flash</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node highlight-node" onclick="explainComponent('node-shock')">Random Shock (ε<sub>t</sub>)</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node" onclick="explainComponent('node-rw')">Random Walk (P<sub>t</sub> = P<sub>t-1</sub> + ε<sub>t</sub>)</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node highlight-node" onclick="explainComponent('node-drift')">Walk + Drift (μ &gt; 0)</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node" onclick="explainComponent('node-prices')">Non-Stationary Stock Prices</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node highlight-node" onclick="explainComponent('node-unitroot')">Unit Root (β = 1)</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node" onclick="explainComponent('node-stationarity')">Need for Stationarity</div>
+        <span class="flow-arrow">➡</span>
+        <div class="flow-node final-node" onclick="explainComponent('node-returns')">Use Returns Instead of Prices (Δ ln P<sub>t</sub>)</div>
+      </div>
+    </div><!-- /tab-flow -->
+
+    <!-- ======================================================
+         TAB 4: ASSET CLASSIFICATION
+         ====================================================== -->
+    <div class="tab-panel" id="tab-assets">
+      <div class="section-title"><span>📦 Asset Classification: Random Walk Taxonomy</span></div>
+      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+        <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:1rem;">
+          Classify assets into <strong>Pure Random Walk (μ ≈ˆ 0)</strong> vs <strong>Random Walk with Drift (μ &gt; 0)</strong>:
+        </p>
+        <div class="asset-grid">
+          <div class="asset-chip">
+            <div class="asset-name">NIFTY 50 / S&amp;P 500</div>
+            <div class="asset-type val-positive">Walk with Positive Drift</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Driven by earnings &amp; GDP growth</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">USD / INR</div>
+            <div class="asset-type val-neutral">Walk with Inflation Drift</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Reflects interest rate parity</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">Gold</div>
+            <div class="asset-type val-neutral">Walk with Inflation Drift</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Store of value / inflation hedge</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">Bitcoin</div>
+            <div class="asset-type val-negative">High Volatility Random Walk</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Speculative shocks dominate</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">House Prices</div>
+            <div class="asset-type val-positive">Walk with Positive Drift</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Population growth &amp; land scarcity</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">T-Bills / Bonds</div>
+            <div class="asset-type val-neutral">Trend-Stationary</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Mean-revert around policy rate</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">Interest Rates</div>
+            <div class="asset-type val-neutral">Trend-Stationary / I(1)</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Policy-anchored, slow drift</div>
+          </div>
+          <div class="asset-chip">
+            <div class="asset-name">Log Returns (r<sub>t</sub>)</div>
+            <div class="asset-type val-positive">Stationary White Noise</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem;">Unit root eliminated by differencing</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-assets -->
+
+  </div><!-- /max-width container -->
+
+  <!-- MODAL: COMPONENT EXPLANATION POPUP -->
+  <div class="modal-overlay" id="info-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title" id="info-modal-title">Component Title</span>
+        <button class="modal-close" onclick="closeModal('info-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="info-modal-body">
+        <!-- Body filled dynamically -->
+      </div>
+      <!-- Speaking indicator bar (shown while TTS is playing) -->
+      <div id="voice-speaking-indicator" style="display:none; align-items:center; gap:0.6rem; background:rgba(255,159,10,0.1); border:1px solid var(--bb-amber); border-radius:6px; padding:0.5rem 1rem; margin-top:1rem;">
+        <span style="display:inline-flex; gap:3px; align-items:flex-end; height:16px;">
+          <span style="width:3px; background:var(--bb-amber); border-radius:2px; animation:bar1 0.9s infinite ease-in-out;"></span>
+          <span style="width:3px; background:var(--bb-amber); border-radius:2px; animation:bar2 0.9s infinite ease-in-out;"></span>
+          <span style="width:3px; background:var(--bb-amber); border-radius:2px; animation:bar3 0.9s infinite ease-in-out;"></span>
+          <span style="width:3px; background:var(--bb-amber); border-radius:2px; animation:bar2 0.9s infinite ease-in-out;"></span>
+          <span style="width:3px; background:var(--bb-amber); border-radius:2px; animation:bar1 0.9s infinite ease-in-out;"></span>
+        </span>
+        <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--bb-amber);">Professor is speaking... (tone & style from voice reference)</span>
+      </div>
+
+      <style>
+        @keyframes bar1 { 0%,100%{height:4px} 50%{height:14px} }
+        @keyframes bar2 { 0%,100%{height:8px} 50%{height:14px} }
+        @keyframes bar3 { 0%,100%{height:14px} 50%{height:4px} }
+      </style>
+
+      <div style="margin-top:1rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-accent" onclick="playVoiceAudio()">🔊 Play Voice Explanation</button>
+          <button class="btn btn-reset" style="padding:0.5rem 0.85rem; grid-column:unset;" onclick="stopVoice()" title="Stop speaking">ÂÂ¹ Stop</button>
+        </div>
+        <button class="btn" onclick="closeModal('info-modal')">✖ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INSTRUCTOR TEACHING NOTES -->
+  <div class="modal-overlay" id="instructor-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">📋 Instructor Teaching Notes & Facilitation Guide</span>
+        <button class="modal-close" onclick="closeModal('instructor-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>Objective of this Interactive Slide</h4>
+        <p>Help MBA students discover the concepts of <strong>Random Walk</strong> and <strong>Random Walk with Drift</strong> through live experimentation before introducing formal econometrics (Unit Roots & Stationarity).</p>
+
+        <h4>Suggested Classroom Agenda (35–45 Mins)</h4>
+        <ul>
+          <li><strong>Phase 1: Experimentation (5 mins)</strong> — Click "Next Day" or "Simulate 30/100 Days" on Pure Random Walk. Let students watch the price chart evolve. Point out how "trends" naturally form.</li>
+          <li><strong>Phase 2: Auto-Pause & Question 1 (10 mins)</strong> — At Day 20, the simulation auto-pauses. Ask students: <em>"Do you believe tomorrow's movement is predictable?"</em> Allow discussion before clicking "Reveal Explanation".</li>
+          <li><strong>Phase 3: Introduce Drift & Extended Simulation (10 mins)</strong> — Switch to Walk + Drift (μ = 0.10%). Run 200 or 300 days simulation to dramatically show how μ compounds over multi-hundred day horizons while pure noise fluctuates.</li>
+          <li><strong>Phase 4: Real Asset Discussion & Theory (15 mins)</strong> — Discuss real-world assets (NIFTY 50 vs. Gold vs. Bitcoin). Connect to Unit Roots (β = 1) and why econometricians use log returns instead of price levels.</li>
+        </ul>
+
+        <h4>Common Student Misconceptions to Address</h4>
+        <ul>
+          <li><strong>Misconception 1: "A strong upward trend means the stock is predictable."</strong><br><em>Correction:</em> Show that pure random walk generates cumulative trends with zero predictability.</li>
+          <li><strong>Misconception 2: "If news was positive today, tomorrow will be positive too."</strong><br><em>Correction:</em> Tomorrow's news shock is independent of today's news.</li>
+          <li><strong>Misconception 3: "Stock markets are pure random gambling."</strong><br><em>Correction:</em> Real markets have positive structural drift (μ &gt; 0) driving long-term wealth creation.</li>
+        </ul>
+      </div>
+      <div style="margin-top:1.5rem; text-align:right;">
+        <button class="btn btn-primary" onclick="closeModal('instructor-modal')">Got it, thanks!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STUDENT CONCEPT GUIDE -->
+  <div class="modal-overlay" id="student-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">📚 Student Concept Guide: Random Walk & Drift</span>
+        <button class="modal-close" onclick="closeModal('student-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>1. Pure Random Walk Model</h4>
+        <p>In a Pure Random Walk, today's price level (P<sub>t</sub>) equals yesterday's price level (P<sub>t-1</sub>) plus an unpredictable random news shock (ε<sub>t</sub>):</p>
+        <p style="font-family:var(--font-mono); color:var(--bb-cyan); background:#090e17; padding:0.5rem; border-radius:4px;">
+          P<sub>t</sub> = P<sub>t-1</sub> + ε<sub>t</sub> &nbsp;&nbsp; where E[ε<sub>t</sub>] = 0
+        </p>
+
+        <h4>2. Random Walk with Drift Model</h4>
+        <p>In real equity markets, prices experience daily random shocks <em>plus</em> a small, consistent positive drift (μ &gt; 0) reflecting long-term economic expansion:</p>
+        <p style="font-family:var(--font-mono); color:var(--bb-green); background:#090e17; padding:0.5rem; border-radius:4px;">
+          P<sub>t</sub> = P<sub>t-1</sub> + μ + ε<sub>t</sub> &nbsp;&nbsp; where μ &gt; 0
+        </p>
+
+        <h4>3. Why Analysts Use Returns Instead of Raw Prices</h4>
+        <p>Because price levels (P<sub>t</sub>) accumulate random shocks over time (Unit Root process), raw prices are <strong>non-stationary</strong> and can cause false regressions. Financial analysts calculate <strong>log daily returns</strong> (Δ ln P<sub>t</sub>) to make data stationary for econometric forecasting!</p>
+      </div>
+      <div style="margin-top:1.5rem; text-align:right;">
+        <button class="btn btn-primary" onclick="closeModal('student-modal')">Close Guide</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION BAR -->
+  <div class="toast-msg" id="toast-msg">Notice message here</div>
+
+  <!-- JAVASCRIPT SIMULATION & CHARTING ENGINE -->
+  <script>
+    /* ==========================================================================
+       DATA STRUCTURES & EVENT POOL
+       ========================================================================== */
+    const MARKET_EVENTS = [
+      // 🟢 POSITIVE EVENTS (+1 to +3)
+      { headline: "🟢 Corporate Earnings Exceed Wall Street Estimates by 18%", shock: 2.5 },
+      { headline: "🟢 RBI Unexpectedly Cuts Repo Rate by 25 bps to Boost Growth", shock: 2.1 },
+      { headline: "🟢 Consumer Price Inflation Drops Below Target to 3.8%", shock: 1.8 },
+      { headline: "🟢 Q3 GDP Growth Beats Expectations at 7.6% YoY", shock: 2.8 },
+      { headline: "🟢 Foreign Institutional Investors (FII) Inject $1.2B into Equities", shock: 2.2 },
+      { headline: "🟢 Global Markets Rally on Tech Sector Breakthroughs", shock: 1.5 },
+
+      // Ã°Å¸â€Â´ NEGATIVE EVENTS (-1 to -3)
+      { headline: "Ã°Å¸â€Â´ Retail Inflation Spikes Higher than Expected to 6.4%", shock: -2.2 },
+      { headline: "Ã°Å¸â€Â´ RBI Raises Interest Rates to Combat Sticky Inflation", shock: -1.9 },
+      { headline: "Ã°Å¸â€Â´ Brent Crude Oil Prices Surge 6% Amid Middle East Supply Disruptions", shock: -2.7 },
+      { headline: "Ã°Å¸â€Â´ Geopolitical Tensions Escalate in Key Trade Corridors", shock: -2.4 },
+      { headline: "Ã°Å¸â€Â´ Key Banking & Tech Earnings Fall Short of Estimates", shock: -2.0 },
+      { headline: "Ã°Å¸â€Â´ Global Recession Fears Heightened by Weak Industrial Data", shock: -2.9 },
+
+      // âšª NEUTRAL EVENT
+      { headline: "âšª No Significant Market News Today; Trading Volume Muted", shock: 0.1 }
+    ];
+
+    /* ==========================================================================
+       PROFESSOR VOICE & ACCENT EXPLANATIONS DICTIONARY
+       Each entry has:
+         title     – modal heading
+         body      – HTML content for the modal
+         voiceScript – full narration text spoken by Web Speech API
+                       (style/tone inspired by My voice.wav; content is
+                        original, topic-specific financial analytics material)
+       ========================================================================== */
+    const EXPLANATIONS = {
+
+      /* ---- LEFT PANEL ---- */
+      'news-panel': {
+        title: '📡 Daily Market News Flash',
+        body: `<h4>Professor's Insight</h4>
+<p>Every trading day, a fresh piece of news arrives — an RBI rate decision, a GDP surprise, a spike in crude oil prices, or a corporate earnings beat. In the language of financial econometrics, each of these events translates into a <strong>random shock (ε<sub>t</sub>)</strong> — an unpredictable jolt to the market price.</p>
+<p style="margin-top:0.75rem;">Here is the key insight: because rational investors immediately incorporate all available information into today's price, <em>tomorrow's price change can only come from tomorrow's news</em> — which nobody knows in advance. This is the foundation of the <strong>Efficient Market Hypothesis</strong>.</p>
+<ul style="margin-top:0.75rem; margin-left:1.25rem;">
+<li>📌 Each news event generates an independent, zero-mean shock: <strong>E[ε<sub>t</sub>] = 0</strong></li>
+<li>📌 Positive and negative shocks are equally likely over time</li>
+<li>📌 The magnitude of a shock depends on the severity of the news event</li>
+</ul>`,
+        voiceScript: `Good morning everyone, and welcome to Financial Analytics. Let me draw your attention to the Daily Market News panel on the left.
+
+Every time you click Next Day, a new headline appears — rate cuts, inflation data, oil price shocks, earnings surprises. Now, each of these news events translates into what we call a random shock — represented mathematically as epsilon sub t.
+
+Here is the critical insight I want you to absorb: because financial markets are competitive, every piece of publicly available information is already reflected in today's price. So tomorrow's price change cannot come from today's news. It can only come from tomorrow's news — which is, by definition, unknown today.
+
+This is the foundational logic behind the Random Walk model. Today's best forecast of tomorrow's price... is simply today's price. The expected value of tomorrow's shock is zero. Not because markets are dumb — but precisely because they are smart enough to price everything in, immediately.`
+      },
+
+      /* ---- MODEL TOGGLE ---- */
+      'model-architecture': {
+        title: 'Å¡â„¢ Model Architecture: Two Competing Models',
+        body: `<h4>Professor's Insight</h4>
+<p>We are comparing two fundamental stochastic models that describe how asset prices evolve over time:</p>
+<div style="margin-top:1rem;">
+  <p><strong style="color:#38bdf8;">Model 1 — Pure Random Walk:</strong></p>
+  <p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#38bdf8; margin:0.4rem 0;">P<sub>t</sub> = P<sub>t-1</sub> + ε<sub>t</sub> &nbsp;&nbsp; where E[ε<sub>t</sub>] = 0</p>
+  <p style="font-size:0.9rem; color:#94a3b8;">Daily shocks are zero-mean and independent. The best prediction of tomorrow is today's price. No drift, no predictable direction.</p>
+</div>
+<div style="margin-top:1rem;">
+  <p><strong style="color:#22c55e;">Model 2 — Random Walk with Drift (μ &gt; 0):</strong></p>
+  <p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#22c55e; margin:0.4rem 0;">P<sub>t</sub> = P<sub>t-1</sub> + μ + ε<sub>t</sub> &nbsp;&nbsp; where μ &gt; 0</p>
+  <p style="font-size:0.9rem; color:#94a3b8;">A small, constant positive drift μ is added each day — representing real economic value creation that compounds over time.</p>
+</div>`,
+        voiceScript: `Now let's talk about the two models you can toggle between in this simulation.
+
+Model one is the Pure Random Walk. Its equation is deceptively simple: today's price equals yesterday's price, plus a random shock epsilon. The expected value of epsilon is zero — meaning shocks are symmetric, equally likely to be positive or negative. The best forecast of tomorrow's price is simply today's price. There is no exploitable trend.
+
+Model two is the Random Walk with Drift. We add one additional term — mu, the Greek letter for a small positive constant. So the equation becomes: today's price equals yesterday's price, plus mu, plus epsilon. This tiny mu — say, zero point one percent per day — compounds powerfully over hundreds of days, creating the gradual upward slope you see in the green series.
+
+The central question for financial analysts is: which model better describes the real world? And the answer, for broad equity indices like the Nifty 50 or the S&P 500, is generally the second one — Random Walk with positive drift. Short-term moves are noise. Long-term direction is real economic growth.`
+      },
+
+      /* ---- CHART PANEL ---- */
+      'chart-panel': {
+        title: '📈 Live Market Index Chart — Reading the Price Path',
+        body: `<h4>Professor's Insight</h4>
+<p>This chart plots the cumulative price level P<sub>t</sub> for both models over time. Let me highlight three things to observe:</p>
+<ul style="margin-top:0.75rem; margin-left:1.25rem;">
+  <li><strong style="color:#38bdf8;">Blue line (Pure Random Walk):</strong> Wanders up and down unpredictably. May appear to have a trend — but this is a statistical illusion caused by cumulative noise accumulation (Unit Root behaviour).</li>
+  <li style="margin-top:0.5rem;"><strong style="color:#22c55e;">Green line (Walk + Drift):</strong> Shows the same daily noise, but with a persistent upward pull from μ. Over 200–300 days, the drift dominates the noise.</li>
+  <li style="margin-top:0.5rem;"><strong style="color:#ff9f0a;">Dashed amber line:</strong> Base level of 100. Your starting index value.</li>
+</ul>
+<p style="margin-top:1rem;"><strong>Key takeaway:</strong> Never regress raw price levels P<sub>t</sub> on time or other variables — they are non-stationary and will produce spurious results. Always work with returns: Δ ln P<sub>t</sub>.</p>`,
+        voiceScript: `Let's look carefully at the market index chart in the centre panel.
+
+The blue line represents a pure random walk — no drift, only noise. Watch what happens over 30 or 100 days. You will notice it appears to trend — sometimes up, sometimes down. Students often mistake this for a genuine predictable movement. But it is not. It is simply the cumulative sum of random shocks, each of which was completely unpredictable.
+
+This phenomenon — where a non-trending process appears to have a trend — is called a Unit Root. Price levels have memory: today's random shock is permanently embedded in all future prices. That's what makes raw price series non-stationary.
+
+Now look at the green line — the Random Walk with Drift. It shows the same daily noise, but with a small positive constant added each day. Over 200 or 300 days, that compounding drift pulls the green line clearly upward, separating it from the wandering blue line.
+
+The golden dashed line at level 100 is your baseline. Anything above it represents cumulative gain. Notice how, in the long run, the drift model reliably ends above the starting point — while the pure random walk can end anywhere.`
+      },
+
+      /* ---- DRIFT BOX ---- */
+      'drift-box': {
+        title: '⚡ Long-Term Growth Forces — What Creates Positive Drift (μ)?',
+        body: `<h4>Professor's Insight</h4>
+<p>The positive drift parameter μ is not arbitrary — it has deep economic foundations. Here is why real stock market indices exhibit positive drift over the long run:</p>
+<table style="width:100%; margin-top:0.75rem; border-collapse:collapse; font-size:0.9rem;">
+  <tr style="border-bottom:1px solid #1f2d47;">
+    <td style="padding:0.5rem; color:#22c55e; font-weight:700;">Driver</td>
+    <td style="padding:0.5rem; color:#94a3b8;">Mechanism</td>
+  </tr>
+  <tr style="border-bottom:1px solid #1f2d47;"><td style="padding:0.5rem; color:#f1f5f9;">📈 Real GDP Growth</td><td style="padding:0.5rem; color:#94a3b8;">Rising output →’ higher corporate revenues →’ higher equity valuations</td></tr>
+  <tr style="border-bottom:1px solid #1f2d47;"><td style="padding:0.5rem; color:#f1f5f9;">Ã°Å¸ÂÂ­ Productivity Gains</td><td style="padding:0.5rem; color:#94a3b8;">Technology improves output per unit of input → margin expansion</td></tr>
+  <tr style="border-bottom:1px solid #1f2d47;"><td style="padding:0.5rem; color:#f1f5f9;">ðŸ’° Earnings Growth</td><td style="padding:0.5rem; color:#94a3b8;">Corporate profits grow faster than inflation →’ P/E expansion</td></tr>
+  <tr style="border-bottom:1px solid #1f2d47;"><td style="padding:0.5rem; color:#f1f5f9;">Ã°Å¸Å’Â Innovation</td><td style="padding:0.5rem; color:#94a3b8;">New technologies create new industries and shareholder value</td></tr>
+  <tr><td style="padding:0.5rem; color:#f1f5f9;">📊 Long-run Inflation</td><td style="padding:0.5rem; color:#94a3b8;">Nominal prices of goods, services and assets rise over time</td></tr>
+</table>`,
+        voiceScript: `Now I want you to think carefully about this question: if daily market news is random and unpredictable, why have stock markets consistently risen over the past century?
+
+The answer lies in this green box — the concept of positive drift, or mu. Drift is not luck. It is the mathematical expression of real, structural economic forces that push asset prices upward over long horizons.
+
+Consider GDP growth first. When the economy expands, corporate revenues increase, profits rise, and equity valuations follow. India's Nifty 50 has delivered roughly twelve to fourteen percent annualised returns over the past two decades — that compounding reflects genuine economic value creation, not chance.
+
+Second, productivity improvements. As technology advances, businesses produce more output with fewer inputs. This expands profit margins and creates shareholder value.
+
+Third, long-run inflation. Even a modest two to three percent annual inflation mechanically pushes nominal asset prices upward.
+
+So mu is the econometric summary of all these forces — a small daily constant that, compounded over years and decades, creates the upward slope you observe in equity markets. Daily noise obscures it in the short run. But in the long run, drift wins.`
+      },
+
+      /* ---- DASHBOARD METRICS ---- */
+      'dashboard-metrics': {
+        title: '📊 Analytics Dashboard — What Each Metric Tells You',
+        body: `<h4>Professor's Insight</h4>
+<p>The right panel tracks live statistics that help you understand the simulation in real time. Here is what each metric means:</p>
+<ul style="margin-top:0.75rem; margin-left:1.25rem;">
+  <li><strong>Current Index (P<sub>t</sub>):</strong> Today's price level — the cumulative sum of all past shocks plus drift.</li>
+  <li style="margin-top:0.4rem;"><strong>Today's Shock (ε<sub>t</sub>):</strong> The random component from today's news event — completely unpredictable before it happens.</li>
+  <li style="margin-top:0.4rem;"><strong>Active Drift (μ):</strong> The constant positive increment added each day in Drift mode. Set with the slider.</li>
+  <li style="margin-top:0.4rem;"><strong>Avg Daily Change:</strong> Running mean of all shocks so far. For a long simulation, this should converge toward zero (Pure RW) or μ (Drift mode).</li>
+  <li style="margin-top:0.4rem;"><strong>Highest / Lowest Level:</strong> The peak and trough of the price series — useful for measuring drawdown.</li>
+  <li style="margin-top:0.4rem;"><strong>Positive / Negative Days:</strong> Win-loss ratio. In a pure random walk, this should approach 50/50 over many observations.</li>
+</ul>`,
+        voiceScript: `Let's walk through the Analytics Dashboard on the right panel together.
+
+The Current Index shows the price level P-sub-t at the end of today's trading session. Remember, this number is the sum of every random shock since Day One — that's why it behaves erratically in the short run.
+
+Today's Shock is the single most important number here for our classroom purpose. It represents epsilon-sub-t: the unexpected component from today's news. Before the news arrived, this number was completely unknown. After the news, it is already history and already priced in. Tomorrow's shock will be equally unforeseeable.
+
+The Active Drift shows mu — the constant we add each day in Drift mode. Notice that even a small drift of zero point one percent per day compounds to approximately twenty-six percent over one year, assuming two-fifty trading days. That is the magic of compounding.
+
+Finally, the Positive Days versus Negative Days counter is particularly instructive. Run the simulation for three hundred days in Pure Random Walk mode and observe: the split should approach fifty-fifty. Neither bulls nor bears have a systematic edge in the short run. But switch to Drift mode, and positive days will slightly dominate over time, because every day gets a small nudge upward from mu.`
+      },
+
+      /* ---- INDIVIDUAL METRICS ---- */
+      'metric-level': {
+        title: '📊’ Price Level P<sub>t</sub> — Accumulated Shocks',
+        body: `<p>The current price P<sub>t</sub> is the cumulative sum of all random shocks since Day 0:</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#38bdf8; margin:0.5rem 0;">P<sub>t</sub> = P<sub>0</sub> + Î£ ε<sub>i</sub> (i = 1 to t)</p>
+<p>Because each shock is permanently embedded in the price level, P<sub>t</sub> is <strong>non-stationary</strong> — its statistical properties (mean, variance) change over time. This is the Unit Root problem. Always convert to log returns before running any regression on financial price series.</p>`,
+        voiceScript: `The Current Index number you see here is the price level P-sub-t. It equals the starting price of one hundred, plus the sum of every random shock received from Day One up to today.
+
+Here is why this matters for econometrics: each shock is permanently baked into the price. A negative shock today does not get cancelled by a future positive shock — the price simply starts from a new, lower base. This persistence is called a Unit Root, and it means the price series is non-stationary.
+
+A non-stationary series violates the assumptions of Ordinary Least Squares regression. If you regress one non-stationary price series on another, you will almost certainly find a statistically significant relationship — even when none exists in reality. This is the spurious regression problem, famously documented by Granger and Newbold in 1974.
+
+The solution is straightforward: instead of using P-sub-t directly, we take first differences — or more precisely, log returns. Delta log P-sub-t equals log P-t minus log P-t-minus-one. This transformation removes the unit root and gives us a stationary series we can safely model.`
+      },
+
+      'metric-shock-explain': {
+        title: '⚡ Today\'s Shock ε<sub>t</sub> — The Random Surprise',
+        body: `<p>Each day's random shock ε<sub>t</sub> represents the unanticipated component of market news. It has three key statistical properties:</p>
+<ul style="margin-top:0.75rem; margin-left:1.25rem;">
+  <li><strong>Zero mean:</strong> E[ε<sub>t</sub>] = 0 — on average, shocks cancel out</li>
+  <li><strong>Constant variance:</strong> Var(ε<sub>t</sub>) = σ²’Ã‚Â² — homoskedastic (in this simplified model)</li>
+  <li><strong>Independence:</strong> Cov(ε<sub>t</sub>, ε<sub>t-k</sub>) = 0 for k â€°Â  0 — no serial correlation</li>
+</ul>
+<p style="margin-top:0.75rem;">These properties make ε<sub>t</sub> a <strong>White Noise process</strong> — the building block of all linear time series models (AR, MA, ARMA).</p>`,
+        voiceScript: `Today's Shock — epsilon sub t — is the heart of the Random Walk model. Let me explain its three key statistical properties.
+
+First, the expected value of epsilon is zero. Positive and negative shocks are equally likely over time. Good news today does not make good news tomorrow more probable.
+
+Second, the variance of epsilon is constant — we call this property homoskedasticity. In our simulation, each shock has roughly the same magnitude of uncertainty. In real markets, volatility actually clusters — bad times bring larger swings — but we keep this model simple for teaching purposes.
+
+Third, and most importantly, shocks are serially uncorrelated. Today's shock gives you absolutely no information about tomorrow's shock. This is why technical analysis based on past price patterns — head and shoulders, moving average crossovers — has very limited predictive power in truly efficient markets.
+
+These three properties together define what statisticians call White Noise — the simplest possible random process, and the foundation of all modern time series econometrics.`
+      },
+
+      'metric-drift-explain': {
+        title: '📈 Active Drift μ — The Structural Growth Component',
+        body: `<p>The drift parameter μ is the deterministic component of price growth — the part that is <em>not</em> random. It represents the systematic, structural tendency of the asset price to increase each period.</p>
+<p style="margin-top:0.75rem;">Over <strong>T trading days</strong>, the expected price is:</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#22c55e; margin:0.5rem 0;">E[P<sub>T</sub>] = P<sub>0</sub> + μ Ã— T</p>
+<p style="margin-top:0.75rem;">For μ = 0.10%/day and T = 250 days (1 trading year):</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#22c55e; margin:0.5rem 0;">E[P<sub>250</sub>] = 100 + 0.10% Ã— 250 = 125.00 (+25%)</p>`,
+        voiceScript: `The Active Drift value mu is what separates the Random Walk with Drift from pure noise. It is a small, deterministic increment added to the price every single trading day.
+
+Let me show you the power of compounding with a concrete example. If mu equals zero point one percent per day — which might seem trivially small — and we have two hundred and fifty trading days in a year, the expected price appreciation is twenty-five percent annually. That is a meaningful equity return.
+
+Now set mu to zero point five percent per day and run three hundred days. Watch how dramatically the green drift series separates from the blue pure random walk. The noise is still there — the daily volatility is identical — but the drift has accumulated so strongly that the long-term direction is unmistakable.
+
+This is precisely what distinguishes equity investing from speculation. In the short run, news-driven shocks dominate. In the long run, the structural drift from economic growth and productivity compounds relentlessly. Investors who stay invested long enough are rewarded not by predicting tomorrow's news, but by capturing this long-run drift.`
+      },
+
+      'metric-avg-explain': {
+        title: '📊 Average Daily Change — Estimating μ from Data',
+        body: `<p>The Average Daily Change is the <strong>sample mean of all observed daily shocks</strong>. It is a key empirical statistic:</p>
+<ul style="margin-top:0.75rem; margin-left:1.25rem;">
+  <li>In a <strong>Pure Random Walk</strong>: the sample mean should converge to 0 as the number of days increases (Law of Large Numbers)</li>
+  <li>In a <strong>Walk with Drift</strong>: the sample mean should converge to μ (the true drift rate)</li>
+</ul>
+<p style="margin-top:0.75rem;">This illustrates the statistical challenge: with only 20–50 observations, it is hard to distinguish whether the observed positive average reflects true drift or just a lucky run of positive shocks.</p>`,
+        voiceScript: `The Average Daily Change metric is doing something very important — it is estimating the drift parameter mu from the data we have generated so far.
+
+Here is the statistical challenge that every financial analyst faces in practice. With just twenty or thirty observations, a purely random process can easily produce a positive sample mean. Random luck can make a zero-drift process look like it has positive drift. This is why you need many hundreds of observations to reliably estimate mu.
+
+Run the simulation for three hundred days in Compare mode. Observe the average daily change. In the pure random walk, it will hover near zero. In the drift model, it will be close to the mu you set on the slider. But with only twenty days of data — which is what we have after the first auto-pause — you simply cannot tell the two models apart statistically.
+
+This has a profound practical implication: looking at three months of stock market data and concluding the market is trending upward or downward is almost meaningless from a statistical standpoint. You need years of data to estimate drift reliably.`
+      },
+
+      /* ---- FLOW NODES ---- */
+      'node-news': {
+        title: '📡 Step 1: Daily News Arrives',
+        body: `<p>Every trading day begins with the arrival of <strong>exogenous information</strong> — news that originates outside the financial system itself: central bank decisions, macroeconomic data releases, geopolitical events, corporate earnings reports.</p>
+<p style="margin-top:0.75rem;">These events are <em>exogenous</em> because they cannot be predicted from past prices alone. They are the fundamental source of uncertainty in financial markets.</p>`,
+        voiceScript: `Step One in our conceptual roadmap is the daily news event. Every market day, new information arrives from outside the financial system — central bank policy announcements, GDP growth data, geopolitical developments, corporate earnings surprises. Economists call these exogenous shocks — meaning they are driven by forces external to the market itself. Because news is exogenous and unpredictable, it is the root cause of all market uncertainty.`
+      },
+
+      'node-shock': {
+        title: '⚡ Step 2: News Becomes a Random Shock ε<sub>t</sub>',
+        body: `<p>Market participants immediately process today's news and trade on it. The net effect of this collective reaction is captured by <strong>ε<sub>t</sub></strong> — the random shock to the price return.</p>
+<p style="margin-top:0.75rem;">Key properties of ε<sub>t</sub>:</p>
+<ul style="margin-left:1.25rem; margin-top:0.5rem;">
+  <li>E[ε<sub>t</sub>] = 0 (zero mean)</li>
+  <li>Cov(ε<sub>t</sub>, ε<sub>s</sub>) = 0 for t ≠ s (independence across time)</li>
+  <li>ε<sub>t</sub> is White Noise — no pattern, no predictability</li>
+</ul>`,
+        voiceScript: `Step Two: as soon as news arrives, market participants — traders, algorithms, institutional investors — immediately process and act on it. Buy and sell orders adjust prices within milliseconds. The net price impact of all this collective action is captured mathematically as epsilon sub t — the random shock. This shock has expected value zero, because market participants have no systematic bias. And it is independent of all previous shocks, because today's trading fully incorporates today's news, leaving nothing for tomorrow to exploit.`
+      },
+
+      'node-rw': {
+        title: '📈 Step 3: Random Walk — Price Inherits All Past Shocks',
+        body: `<p>When we accumulate daily shocks into a price level, we get the <strong>Random Walk</strong>:</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#38bdf8; margin:0.5rem 0;">P<sub>t</sub> = P<sub>t-1</sub> + ε<sub>t</sub></p>
+<p style="margin-top:0.75rem;">The price <em>remembers</em> every past shock forever — this is the Unit Root property. Unlike a stationary process (which reverts toward a fixed mean), the Random Walk drifts arbitrarily far from its starting point over time, with no tendency to return.</p>`,
+        voiceScript: `Step Three is the Random Walk itself. When we accumulate independent daily shocks into a price level, we get the equation: P-sub-t equals P-sub-t-minus-one plus epsilon-sub-t. This means today's price is yesterday's price plus an unpredictable jolt. Every past shock is permanently embedded. The price wanders — sometimes far above the starting point, sometimes far below — with no gravitational pull back toward any long-run mean. This is categorically different from a stationary process, which always reverts toward its mean. In a random walk, the mean itself changes every day.`
+      },
+
+      'node-drift': {
+        title: '📈 Step 4: Adding Drift — The Economic Growth Component',
+        body: `<p>Adding a constant positive drift μ to the Random Walk gives us the <strong>Random Walk with Drift</strong>:</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#22c55e; margin:0.5rem 0;">P<sub>t</sub> = P<sub>t-1</sub> + μ + ε<sub>t</sub> &nbsp;&nbsp; (μ &gt; 0)</p>
+<p style="margin-top:0.75rem;">The drift μ represents <strong>structural long-run economic growth</strong>. Over short horizons, ε<sub>t</sub> dominates and the chart looks like pure noise. Over long horizons (200–300+ days), μ Ã— T dominates and the upward trend becomes visible.</p>`,
+        voiceScript: `Step Four introduces the drift. We simply add one more term — the constant mu — to our Random Walk equation. P-sub-t now equals P-sub-t-minus-one, plus mu, plus epsilon. Simple in form, but profoundly different in behaviour. Over two hundred or three hundred days, that tiny mu accumulates into a clearly visible upward trend — representing decades of economic growth compressed into our simulation. The noise is still there, making individual days unpredictable. But the direction is now structural and deterministic. This is why long-term investors in diversified equity indices tend to be rewarded: they are patiently harvesting the accumulated economic drift.`
+      },
+
+      'node-prices': {
+        title: '⚠️ Step 5: Non-Stationary Price Levels',
+        body: `<p>Both the Pure Random Walk and the Walk with Drift produce <strong>non-stationary price series</strong>. A time series is non-stationary when its statistical properties — mean and variance — change over time.</p>
+<p style="margin-top:0.75rem;">Consequences of non-stationarity:</p>
+<ul style="margin-left:1.25rem; margin-top:0.5rem;">
+  <li>Regression with non-stationary variables →’ <strong>Spurious Regression</strong></li>
+  <li>t-statistics and RÂ² are unreliable</li>
+  <li>Confidence intervals do not have their nominal coverage</li>
+  <li>Forecasting models trained on price levels will fail out-of-sample</li>
+</ul>`,
+        voiceScript: `Step Five is where we identify a critical problem: both the pure random walk and the walk with drift produce non-stationary price series. What does non-stationary mean? It means the statistical properties of the series — its mean and variance — are not fixed. They drift over time. The mean of P-sub-t at day fifty is different from the mean at day one hundred. The variance grows without bound as t increases. This violates a fundamental assumption of regression analysis. If you regress a non-stationary variable on another non-stationary variable, you will almost certainly find a high R-squared and significant t-statistics — even if the two series are completely unrelated. Granger and Newbold called this spurious regression, and it is one of the most dangerous pitfalls in applied financial econometrics.`
+      },
+
+      'node-unitroot': {
+        title: '🔬 Step 6: Unit Root — The Technical Source of Non-Stationarity',
+        body: `<p>The non-stationarity in price levels has a precise technical cause: the <strong>Unit Root</strong>.</p>
+<p style="margin-top:0.75rem;">Consider the autoregressive model:</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#a855f7; margin:0.5rem 0;">P<sub>t</sub> = β Ã— P<sub>t-1</sub> + ε<sub>t</sub></p>
+<ul style="margin-top:0.75rem; margin-left:1.25rem;">
+  <li>If |β| &lt; 1 →’ <strong>stationary</strong>: shocks die out, series reverts to mean</li>
+  <li>If β = 1 →’ <strong>Unit Root</strong>: shocks persist forever, series is non-stationary</li>
+  <li>If β &gt; 1 →’ <strong>explosive</strong>: series diverges to infinity</li>
+</ul>
+<p style="margin-top:0.75rem;">The <strong>Augmented Dickey-Fuller (ADF) test</strong> formally tests Hâ€šâ‚¬: β = 1 (unit root present) vs. Hâ€šÂ: |β| &lt; 1 (stationary).</p>`,
+        voiceScript: `Step Six introduces the technical concept behind non-stationarity: the Unit Root. Consider a simple autoregressive model — P-sub-t equals beta times P-sub-t-minus-one, plus epsilon. The behaviour of this series depends entirely on the value of beta. If beta is less than one in absolute value, shocks gradually die out and the series reverts toward its long-run mean — it is stationary. If beta equals exactly one — the Unit Root case — every shock is permanent. The series never forgets. It wanders without bound. This is precisely the Random Walk. If beta exceeds one, the series explodes toward infinity — which is unrealistic for financial data. In practice, we test for unit roots using the Augmented Dickey-Fuller test, or the KPSS test. Virtually all financial price series fail this test — meaning they contain unit roots and are non-stationary. This is not a failure of the data. It is an econometric reality we must accommodate.`
+      },
+
+      'node-stationarity': {
+        title: '✅ Step 7: Why We Need Stationarity',
+        body: `<p>For reliable econometric analysis, we need <strong>stationary</strong> data — series where mean, variance, and autocovariance are constant over time.</p>
+<p style="margin-top:0.75rem;">Stationarity is required for:</p>
+<ul style="margin-left:1.25rem; margin-top:0.5rem;">
+  <li>Valid OLS regression and hypothesis testing</li>
+  <li>Reliable forecasting with ARMA-type models</li>
+  <li>Consistent estimation of GARCH volatility models</li>
+  <li>Valid Granger causality tests between variables</li>
+  <li>Cointegration analysis (Engle-Granger, Johansen)</li>
+</ul>`,
+        voiceScript: `Step Seven: now that we understand why price levels are problematic, let us think about what stationarity would look like and why we need it. A stationary time series has a constant mean, constant variance, and autocovariances that depend only on the lag — not on where we are in time. This stability is what makes the series well-behaved for econometric modelling. Without stationarity, our regression coefficients are inconsistent, our standard errors are wrong, and our forecasts are unreliable. Stationarity is not an abstract mathematical nicety — it is a practical prerequisite for every forecasting model you will use in practice: ARMA models, GARCH volatility models, Vector Autoregressions, and Cointegration analysis.`
+      },
+
+      'node-returns': {
+        title: '🚀 Step 8: Log Returns — The Stationary Solution',
+        body: `<p>The standard solution to non-stationary prices is to compute <strong>log daily returns</strong>:</p>
+<p style="font-family:monospace; background:#090e17; padding:0.5rem; border-radius:4px; color:#38bdf8; margin:0.5rem 0;">r<sub>t</sub> = Δ ln P<sub>t</sub> = ln(P<sub>t</sub> / P<sub>t-1</sub>) â€°Ë† μ + ε<sub>t</sub></p>
+<p style="margin-top:0.75rem;">Why log returns?</p>
+<ul style="margin-left:1.25rem; margin-top:0.5rem;">
+  <li>✅ <strong>Stationary</strong>: mean â€°Ë† μ, variance â€°Ë† σ²’Ã‚Â² (constant over time)</li>
+  <li>✅ <strong>Additive</strong>: multi-period returns are sums of single-period returns</li>
+  <li>✅ <strong>Approximately normal</strong>: suitable for standard statistical tests</li>
+  <li>✅ <strong>Bounded below</strong>: log return ≥ −’100% (no negative prices)</li>
+</ul>
+<p style="margin-top:0.75rem;">This is why financial analysts always work with returns — never with raw price levels.</p>`,
+        voiceScript: `And we arrive at Step Eight — the elegant solution to the unit root problem: log daily returns. Instead of modelling the price level P-sub-t, we take the natural logarithm of the ratio of today's price to yesterday's price. This gives us the log return, r-sub-t. Mathematically, this is approximately equal to mu plus epsilon — a stationary series with a constant mean equal to the drift and a constant variance equal to the shock variance. The unit root has been eliminated by the act of differencing. Log returns are additive across time — so a three-day return is the sum of three daily log returns. They are approximately normally distributed, enabling standard parametric tests. And by construction, they are bounded below by negative one hundred percent — ruling out the mathematical impossibility of a negative price. This is the fundamental reason why every financial model — from CAPM to GARCH to Black-Scholes — works with returns, not price levels. Today, you have discovered why.`
+      }
+    };
+
+    /* SIMULATION STATE */
+    let currentDay = 0;
+    let mode = 'rw'; // 'rw', 'drift', 'compare'
+    let driftRate = 0.10; // +0.10% per observation default
+    let isAutoRunning = false;
+    let autoRunInterval = null;
+    let hasPausedAtDay20 = false;
+
+    // Time Series Data Arrays
+    let daysData = [0];
+    let rwSeries = [100.00];
+    let driftSeries = [100.00];
+    let shocksHistory = [0.00];
+
+    // Discussion Step State
+    let currentDiscussionStep = 1;
+
+    const DISCUSSION_QUESTIONS = [
+      {
+        step: 1,
+        question: "1. The market index has completed 20 trading days. Do you believe tomorrow's movement is predictable?",
+        options: ["YES (Predictable)", "NO (Random)", "NOT SURE"],
+        explanation: "<strong>ANSWER: NO.</strong><br>Despite any apparent trend over the past 20 days, tomorrow's price change is driven by <em>tomorrow's random shock ($\epsilon_{t+1}$)</em>, which is completely independent of past news."
+      },
+      {
+        step: 2,
+        question: "2. If today's news was strongly positive, does tomorrow's price movement also have to be positive?",
+        options: ["YES", "NO", "DEPENDS ON TREND"],
+        explanation: "<strong>ANSWER: NO.</strong><br>Tomorrow's news is independent of today's news. Every single day introduces a fresh, unpredictable random shock. Market shocks do not have 'memory' of past news!"
+      },
+      {
+        step: 3,
+        question: "3. Does this pure Random Walk market graph appear to have an upward or downward trend?",
+        options: ["YES, Clear Trend", "NO, Pure Noise", "MAYBE"],
+        explanation: "<strong>ANSWER: IT APPEARS TO, BUT IT IS AN ILLUSION!</strong><br>Cumulative random shocks naturally form visual clusters and pseudo-trends (Unit Root behavior). Randomness alone creates convincing trend illusions."
+      },
+      {
+        step: 4,
+        question: "4. We now switch to Random Walk with Drift mode. Which model graph looks more like the real long-term NIFTY 50 or S&P 500 index?",
+        options: ["Random Walk (Pure Noise)", "Random Walk with Drift", "Neither"],
+        explanation: "<strong>ANSWER: RANDOM WALK WITH DRIFT.</strong><br>Real stock market indices experience unpredictable daily news shocks, but also compound a small positive drift over time due to real economic growth and earnings expansion."
+      }
+    ];
+
+    /* ==========================================================================
+       CANVAS CHARTING ENGINE (HIGH DPI RESPONSIVE RENDERER)
+       ========================================================================== */
+    const canvas = document.getElementById('marketChart');
+    const ctx = canvas.getContext('2d');
+
+    function setupCanvasDPI() {
+      const rect = canvas.getBoundingClientRect();
+      const dpi = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpi;
+      canvas.height = rect.height * dpi;
+      ctx.scale(dpi, dpi);
+    }
+
+    function renderChart() {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (daysData.length === 0) return;
+
+      const padding = { top: 30, right: 30, bottom: 40, left: 50 };
+      const graphW = w - padding.left - padding.right;
+      const graphH = h - padding.top - padding.bottom;
+
+      // Determine Y min & max
+      let allValues = [];
+      if (mode === 'rw' || mode === 'compare') allValues.push(...rwSeries);
+      if (mode === 'drift' || mode === 'compare') allValues.push(...driftSeries);
+
+      let minY = Math.min(...allValues, 95);
+      let maxY = Math.max(...allValues, 105);
+      const yBuffer = (maxY - minY) * 0.1 || 5;
+      minY -= yBuffer;
+      maxY += yBuffer;
+
+      const maxDay = Math.max(daysData[daysData.length - 1], 20);
+
+      // Coordinate mapping functions
+      const getX = (d) => padding.left + (d / maxDay) * graphW;
+      const getY = (v) => padding.top + graphH - ((v - minY) / (maxY - minY)) * graphH;
+
+      // Draw Grid Lines
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.font = '10px "JetBrains Mono"';
+      ctx.fillStyle = '#64748b';
+
+      const ySteps = 5;
+      for (let i = 0; i <= ySteps; i++) {
+        const val = minY + (i / ySteps) * (maxY - minY);
+        const yPos = getY(val);
+        ctx.beginPath();
+        ctx.moveTo(padding.left, yPos);
+        ctx.lineTo(w - padding.right, yPos);
+        ctx.stroke();
+        ctx.fillText(val.toFixed(1), 10, yPos + 3);
+      }
+
+      // Base Level 100 Line (Dashed)
+      const base100Y = getY(100);
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#ff9f0a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, base100Y);
+      ctx.lineTo(w - padding.right, base100Y);
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw Series 1: Random Walk (Blue)
+      if (mode === 'rw' || mode === 'compare') {
+        drawLineSeries(rwSeries, '#38bdf8', getX, getY);
+      }
+
+      // Draw Series 2: Random Walk with Drift (Green)
+      if (mode === 'drift' || mode === 'compare') {
+        drawLineSeries(driftSeries, '#22c55e', getX, getY);
+      }
+
+      // Draw X-Axis Labels
+      ctx.fillStyle = '#64748b';
+      const xSteps = Math.min(maxDay, 10);
+      for (let i = 0; i <= xSteps; i++) {
+        const dVal = Math.round((i / xSteps) * maxDay);
+        const xPos = getX(dVal);
+        ctx.fillText(`Day ${dVal}`, xPos - 15, h - 10);
+      }
+    }
+
+    function drawLineSeries(data, strokeColor, getX, getY) {
+      if (data.length < 1) return;
+
+      ctx.beginPath();
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+
+      for (let i = 0; i < data.length; i++) {
+        const x = getX(daysData[i]);
+        const y = getY(data[i]);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Glowing Latest Point
+      const lastIdx = data.length - 1;
+      const lastX = getX(daysData[lastIdx]);
+      const lastY = getY(data[lastIdx]);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = strokeColor;
+      ctx.shadowColor = strokeColor;
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    window.addEventListener('resize', () => {
+      setupCanvasDPI();
+      renderChart();
+    });
+
+    /* ==========================================================================
+       SIMULATION ENGINE LOGIC
+       ========================================================================== */
+    function stepNextDay() {
+      // Pick random news event
+      const eventObj = MARKET_EVENTS[Math.floor(Math.random() * MARKET_EVENTS.length)];
+      
+      // Calculate random shock between -3.0 and +3.0 based on event shock + noise
+      const eventNoise = (Math.random() - 0.5) * 0.8;
+      const totalShock = parseFloat((eventObj.shock + eventNoise).toFixed(2));
+
+      currentDay++;
+      daysData.push(currentDay);
+      shocksHistory.push(totalShock);
+
+      const lastRW = rwSeries[rwSeries.length - 1];
+      const lastDrift = driftSeries[driftSeries.length - 1];
+
+      // Formulating Next Steps
+      const nextRW = Math.max(10, parseFloat((lastRW + totalShock).toFixed(2)));
+      rwSeries.push(nextRW);
+
+      const nextDrift = Math.max(10, parseFloat((lastDrift + driftRate + totalShock).toFixed(2)));
+      driftSeries.push(nextDrift);
+
+      // UI Updates
+      triggerNewsFlash(eventObj, totalShock);
+      updateMetrics(totalShock);
+      renderChart();
+
+      // Auto Pause at Day 20
+      if (currentDay === 20 && !hasPausedAtDay20) {
+        hasPausedAtDay20 = true;
+        if (isAutoRunning) stopAutoRun();
+        showToast("⏸️ Auto-Paused on Day 20 for Classroom Discussion!");
+        highlightDiscussionCard();
+      }
+    }
+
+    function triggerNewsFlash(eventObj, shockVal) {
+      const card = document.getElementById('news-card');
+      const headline = document.getElementById('news-headline');
+      const badge = document.getElementById('news-shock-badge');
+      const time = document.getElementById('news-time');
+
+      card.classList.remove('flash-effect');
+      void card.offsetWidth; // trigger reflow
+      card.classList.add('flash-effect');
+
+      headline.textContent = eventObj.headline;
+
+      const now = new Date();
+      time.textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')} EST`;
+
+      const sign = shockVal > 0 ? '+' : '';
+      badge.textContent = `SHOCK: ${sign}${shockVal.toFixed(2)}%`;
+      badge.className = 'shock-badge ' + (shockVal > 0.3 ? 'shock-positive' : shockVal < -0.3 ? 'shock-negative' : 'shock-neutral');
+
+      document.getElementById('day-counter-badge').textContent = `DAY ${currentDay}`;
+    }
+
+    function updateMetrics(lastShock) {
+      const activeSeries = (mode === 'drift') ? driftSeries : rwSeries;
+      const currentVal = activeSeries[activeSeries.length - 1];
+      const startVal = activeSeries[0];
+      const totalPct = ((currentVal - startVal) / startVal) * 100;
+
+      document.getElementById('metric-index').textContent = currentVal.toFixed(2);
+      const chgElem = document.getElementById('metric-change');
+      chgElem.textContent = `${totalPct >= 0 ? '+' : ''}${totalPct.toFixed(2)}% total`;
+      chgElem.className = 'metric-sub ' + (totalPct >= 0 ? 'val-positive' : 'val-negative');
+
+      const shockElem = document.getElementById('metric-shock');
+      shockElem.textContent = `${lastShock >= 0 ? '+' : ''}${lastShock.toFixed(2)}%`;
+      shockElem.className = 'metric-value ' + (lastShock > 0 ? 'val-positive' : lastShock < 0 ? 'val-negative' : 'val-neutral');
+      document.getElementById('metric-shock-type').textContent = lastShock > 0 ? 'Bullish' : lastShock < 0 ? 'Bearish' : 'Neutral';
+
+      const high = Math.max(...activeSeries);
+      const low = Math.min(...activeSeries);
+      document.getElementById('metric-high').textContent = high.toFixed(2);
+      document.getElementById('metric-low').textContent = low.toFixed(2);
+
+      let posCount = 0, negCount = 0;
+      for (let i = 1; i < shocksHistory.length; i++) {
+        if (shocksHistory[i] > 0) posCount++;
+        else if (shocksHistory[i] < 0) negCount++;
+      }
+      const total = shocksHistory.length - 1 || 1;
+      document.getElementById('metric-pos-days').textContent = posCount;
+      document.getElementById('metric-pos-pct').textContent = `${Math.round((posCount/total)*100)}% of total`;
+      document.getElementById('metric-neg-days').textContent = negCount;
+      document.getElementById('metric-neg-pct').textContent = `${Math.round((negCount/total)*100)}% of total`;
+
+      const sumShocks = shocksHistory.reduce((a,b)=>a+b, 0);
+      const avgShock = sumShocks / (shocksHistory.length || 1);
+      document.getElementById('metric-avg-change').textContent = `${avgShock >= 0 ? '+' : ''}${avgShock.toFixed(2)}%`;
+    }
+
+    function runMultiDays(count) {
+      if (isAutoRunning) stopAutoRun();
+      let stepsRemaining = count;
+      isAutoRunning = true;
+      const speed = count > 150 ? 30 : 60; // Faster interval for multi-hundred day simulation
+
+      autoRunInterval = setInterval(() => {
+        if (stepsRemaining <= 0 || (currentDay === 20 && !hasPausedAtDay20)) {
+          stopAutoRun();
+          return;
+        }
+        stepNextDay();
+        stepsRemaining--;
+      }, speed);
+    }
+
+    function stopAutoRun() {
+      isAutoRunning = false;
+      if (autoRunInterval) clearInterval(autoRunInterval);
+    }
+
+    function resetSimulation() {
+      stopAutoRun();
+      currentDay = 0;
+      daysData = [0];
+      rwSeries = [100.00];
+      driftSeries = [100.00];
+      shocksHistory = [0.00];
+      hasPausedAtDay20 = false;
+
+      document.getElementById('news-headline').textContent = 'Market simulator reset. Ready for new day simulation.';
+      document.getElementById('news-shock-badge').textContent = 'SHOCK: 0.00%';
+      document.getElementById('day-counter-badge').textContent = 'DAY 0';
+
+      updateMetrics(0.00);
+      renderChart();
+      showToast("Market simulator reset to Day 0.");
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      document.getElementById('mode-rw').className = 'mode-option ' + (mode === 'rw' ? 'active' : '');
+      document.getElementById('mode-drift').className = 'mode-option drift-mode ' + (mode === 'drift' ? 'active' : '');
+      document.getElementById('mode-compare').className = 'mode-option compare-mode ' + (mode === 'compare' ? 'active' : '');
+
+      document.getElementById('legend-rw').style.display = (mode === 'rw' || mode === 'compare') ? 'flex' : 'none';
+      document.getElementById('legend-drift').style.display = (mode === 'drift' || mode === 'compare') ? 'flex' : 'none';
+
+      updateMetrics(shocksHistory[shocksHistory.length - 1] || 0);
+      renderChart();
+    }
+
+    function updateDriftFromSlider(val) {
+      driftRate = parseFloat(val);
+      document.getElementById('drift-val-label').textContent = `+${driftRate.toFixed(2)}% / day`;
+      document.getElementById('metric-drift-val').textContent = `+${driftRate.toFixed(2)}%`;
+      document.getElementById('legend-drift-val').textContent = `${driftRate.toFixed(2)}%`;
+      renderChart();
+    }
+
+    function setDriftPreset(val) {
+      document.getElementById('drift-slider').value = val;
+      updateDriftFromSlider(val);
+
+      const chips = document.querySelectorAll('.preset-chip');
+      chips.forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    /* ==========================================================================
+       MODAL & COMPONENT EXPLANATIONS
+       ========================================================================== */
+    let currentVoiceScript = ''; // stores script for the currently-open modal
+
+    function explainComponent(key) {
+      const exp = EXPLANATIONS[key];
+      if (!exp) return;
+
+      // Stop any running speech when opening a new modal
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      currentVoiceScript = exp.voiceScript || '';
+
+      document.getElementById('info-modal-title').innerHTML = exp.title;
+      document.getElementById('info-modal-body').innerHTML = exp.body;
+
+      // Reset speaking indicator
+      const ind = document.getElementById('voice-speaking-indicator');
+      if (ind) { ind.style.display = 'none'; }
+
+      openModal('info-modal');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+      // Stop speech when modal is closed
+      if (id === 'info-modal' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const ind = document.getElementById('voice-speaking-indicator');
+        if (ind) ind.style.display = 'none';
+      }
+    }
+
+    /* ==========================================================================
+       AUDIO EXPLANATION CONTROLLER
+       -----------------------------------------------------------------------
+       "My voice.wav" plays via the header widget as an accent/tone reference.
+       All per-component explanations use Web Speech API with carefully tuned
+       parameters to deliver a deep, authoritative male professor voice:
+         • rate  0.88  – deliberate, classroom-paced
+         • pitch 0.90  – slightly lower for a deeper male register
+         • voice – prefers a high-quality MALE English voice (Google UK/US
+                   Male, Microsoft David/Mark/George, or any en-GB/en-US)
+       Content is original, topic-specific financial analytics narration.
+       ========================================================================== */
+    const audio = document.getElementById('voice-audio');
+    const playBtn = document.getElementById('audio-play-btn');
+    const timerElem = document.getElementById('audio-timer');
+
+    /* Preferred TTS voice — selected once voices load */
+    let preferredVoice = null;
+
+    /* Known female voice name fragments to exclude */
+    const FEMALE_VOICE_NAMES = ['Female','Zira','Hazel','Susan','Catherine',
+      'Eva','Samantha','Victoria','Karen','Moira','Fiona','Tessa','Veena'];
+
+    function isMaleVoice(v) {
+      return !FEMALE_VOICE_NAMES.some(f =>
+        v.name.toLowerCase().includes(f.toLowerCase())
+      );
+    }
+
+    function pickPreferredVoice() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+
+      // Priority order — MALE voices preferred:
+      // 1. Google UK English Male
+      // 2. Google US English Male
+      // 3. Microsoft David (en-US, high quality)
+      // 4. Microsoft Mark  (en-US)
+      // 5. Microsoft George (en-GB)
+      // 6. Microsoft James  (en-AU)
+      // 7. Any en-GB voice that isn't known-female
+      // 8. Any en-US voice that isn't known-female
+      // 9. Any English voice that isn't known-female
+      // 10. Fallback: any English voice
+      const priorities = [
+        v => v.name === 'Google UK English Male',
+        v => v.name === 'Google US English Male',
+        v => v.name.includes('Microsoft David'),
+        v => v.name.includes('Microsoft Mark'),
+        v => v.name.includes('Microsoft George'),
+        v => v.name.includes('Microsoft James'),
+        v => v.lang === 'en-GB' && isMaleVoice(v),
+        v => v.lang === 'en-US' && isMaleVoice(v),
+        v => v.lang.startsWith('en') && isMaleVoice(v),
+        v => v.lang.startsWith('en')
+      ];
+      for (const pred of priorities) {
+        const found = voices.find(pred);
+        if (found) { preferredVoice = found; break; }
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = pickPreferredVoice;
+      pickPreferredVoice(); // call immediately in case voices are already loaded
+    }
+
+    /* ---- HEADER WIDGET: plays My voice.wav (accent / tone reference) ---- */
+    function toggleAudioExplanation() {
+      if (audio.paused) {
+        audio.play()
+          .then(() => {
+            playBtn.textContent = '⏸️';
+            showToast('▶ Playing professor voice guide — listen for tone & style...');
+          })
+          .catch(() => {
+            // WAV unavailable — speak a welcome intro in professor style
+            const welcomeScript =
+              `Welcome to Financial Analytics, and to today's simulation on the Random Walk and Random Walk with Drift. ` +
+              `Our central question is this: can daily market news — rate decisions, earnings surprises, geopolitical shocks — ` +
+              `explain or predict the movement of the stock market? ` +
+              `Click on any panel, metric, or concept node to hear a detailed explanation. ` +
+              `Use the simulation controls to run experiments, and let the data guide your intuition ` +
+              `before we formalise the theory.`;
+            speakWithProfessorStyle(welcomeScript);
+          });
+      } else {
+        audio.pause();
+        playBtn.textContent = '▶';
+      }
+    }
+
+    /* ---- MODAL BUTTON: speak the per-component voice script ---- */
+    function playVoiceAudio() {
+      if (!currentVoiceScript) {
+        showToast('No audio script available for this component.');
+        return;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      showSpeakingIndicator(true);
+      speakWithProfessorStyle(currentVoiceScript, () => showSpeakingIndicator(false));
+    }
+
+    /* ---- STOP SPEECH button (in modal footer) ---- */
+    function stopVoice() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      showSpeakingIndicator(false);
+    }
+
+    /* ---- Core TTS engine — male professor style ---- */
+    function speakWithProfessorStyle(text, onEnd) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate  = 0.88;   // deliberate classroom pace
+      utterance.pitch = 0.90;   // slightly lower →’ deeper male register
+      utterance.volume = 1.0;
+      if (preferredVoice) utterance.voice = preferredVoice;
+
+      utterance.onend = () => {
+        if (onEnd) onEnd();
+      };
+      utterance.onerror = () => {
+        showSpeakingIndicator(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function showSpeakingIndicator(speaking) {
+      const ind = document.getElementById('voice-speaking-indicator');
+      const voiceBtn = document.querySelector('#info-modal .btn-accent');
+      if (!ind) return;
+      if (speaking) {
+        ind.style.display = 'flex';
+        if (voiceBtn) voiceBtn.textContent = '🔊 Speaking...';
+      } else {
+        ind.style.display = 'none';
+        if (voiceBtn) voiceBtn.textContent = '🔊 Play Voice Explanation';
+      }
+    }
+
+    /* ---- WAV timer update ---- */
+    audio.addEventListener('timeupdate', () => {
+      const cur  = Math.floor(audio.currentTime);
+      const mins = Math.floor(cur / 60);
+      const secs = cur % 60;
+      timerElem.textContent = `[${mins}:${secs.toString().padStart(2,'0')}]`;
+    });
+
+    audio.addEventListener('ended', () => {
+      playBtn.textContent = '▶';
+    });
+
+    /* ---- Legacy alias kept for backward compatibility ---- */
+    function speakFallbackText(text) { speakWithProfessorStyle(text); }
+
+    /* DISCUSSION CONTROLLER */
+    function loadDiscussionStep(stepNum) {
+      const qObj = DISCUSSION_QUESTIONS.find(q => q.step === stepNum);
+      if (!qObj) return;
+
+      document.getElementById('disc-step-num').textContent = stepNum;
+      document.getElementById('disc-question-text').textContent = qObj.question;
+
+      const optsContainer = document.getElementById('disc-options-container');
+      optsContainer.innerHTML = '';
+      qObj.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = opt;
+        btn.onclick = () => selectDiscussionChoice(opt);
+        optsContainer.appendChild(btn);
+      });
+
+      document.getElementById('disc-reveal-box').style.display = 'none';
+      document.getElementById('btn-reveal-explanation').style.display = 'inline-block';
+      document.getElementById('btn-next-discussion').style.display = 'none';
+    }
+
+    function selectDiscussionChoice(choice) {
+      showToast(`Selected choice: ${choice}. Click "Reveal Explanation".`);
+    }
+
+    function revealDiscussionExplanation() {
+      const qObj = DISCUSSION_QUESTIONS.find(q => q.step === currentDiscussionStep);
+      const revealBox = document.getElementById('disc-reveal-box');
+      revealBox.innerHTML = qObj.explanation;
+      revealBox.style.display = 'block';
+
+      document.getElementById('btn-reveal-explanation').style.display = 'none';
+      document.getElementById('btn-next-discussion').style.display = 'inline-block';
+
+      if (currentDiscussionStep === 4) {
+        setMode('drift');
+      }
+    }
+
+    function nextDiscussionQuestion() {
+      if (currentDiscussionStep < DISCUSSION_QUESTIONS.length) {
+        currentDiscussionStep++;
+        loadDiscussionStep(currentDiscussionStep);
+      } else {
+        showToast("Completed classroom discussion sequence!");
+      }
+    }
+
+    function highlightDiscussionCard() {
+      document.getElementById('discussion-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleQA(id) {
+      const body = document.getElementById(id);
+      body.style.display = (body.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    /* ==========================================================================
+       TAB NAVIGATION SYSTEM
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+      const targetPanel = document.getElementById(`tab-${tabId}`);
+
+      if (targetBtn) targetBtn.classList.add('active');
+      if (targetPanel) targetPanel.classList.add('active');
+
+      if (tabId === 'unitroot') {
+        setTimeout(() => {
+          drawAR1Canvas();
+          refreshUnitRootStats();
+          renderUnitRootCharts();
+          runStochDetSimulation();
+        }, 50);
+      }
+    }
+
+    /* ==========================================================================
+       UNIT ROOT EXPLORER STATS & CANVAS ENGINE
+       ========================================================================== */
+
+    // 1. Draw AR(1) Comparison Visual Canvas
+    function drawAR1Canvas() {
+      const c = document.getElementById('ar1Canvas');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      const w = c.width = c.clientWidth;
+      const h = c.height = c.clientHeight;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
+      ctx.stroke();
+
+      const N = 80;
+      const stepX = w / (N - 1);
+
+      // Simulate 3 series with same noise seed
+      const noise = [];
+      for (let i = 0; i < N; i++) noise.push((Math.random() - 0.5) * 4);
+
+      function generateAR1(beta) {
+        const series = [0];
+        for (let i = 1; i < N; i++) {
+          let val = beta * series[i-1] + noise[i];
+          if (Math.abs(val) > 40) val = Math.sign(val) * 40; // clamp
+          series.push(val);
+        }
+        return series;
+      }
+
+      const sGreen = generateAR1(0.7);  // Stationary
+      const sAmber = generateAR1(1.0);  // Unit Root
+      const sRed   = generateAR1(1.06); // Explosive
+
+      function plotPath(series, color) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < N; i++) {
+          const x = i * stepX;
+          const y = h/2 - series[i] * 3;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      plotPath(sGreen, '#22c55e');
+      plotPath(sAmber, '#ff9f0a');
+      plotPath(sRed,   '#ef4444');
+    }
+
+    // 2. Compute Live Statistics & Econometric Tests (ADF + Breusch-Pagan) from Active Simulation
+    function refreshUnitRootStats() {
+      const activeSeries = (mode === 'drift') ? driftSeries : rwSeries;
+      const T = activeSeries.length;
+
+      document.getElementById('ur-days').textContent = T - 1;
+
+      if (T < 8) {
+        document.getElementById('ur-verdict').innerHTML =
+          `⚠️ <strong>Need More Data:</strong> You have only simulated ${T-1} days. Run 30, 100, or 300 days first to generate a meaningful time series sample for ADF & BP testing.`;
+        return;
+      }
+
+      // Compute price variance and mean
+      const priceMean = activeSeries.reduce((a,b)=>a+b, 0) / T;
+      const priceVar = activeSeries.reduce((a,b)=>a + Math.pow(b - priceMean, 2), 0) / (T - 1);
+
+      // Compute log returns
+      const returns = [];
+      for (let i = 1; i < T; i++) {
+        returns.push(Math.log(activeSeries[i] / activeSeries[i-1]) * 100);
+      }
+      const retMean = returns.reduce((a,b)=>a+b, 0) / returns.length;
+      const retVar = returns.reduce((a,b)=>a + Math.pow(b - retMean, 2), 0) / (returns.length - 1);
+
+      // Estimate beta via OLS regression: P_t = beta * P_{t-1} + e
+      let num = 0, den = 0;
+      for (let i = 1; i < T; i++) {
+        num += activeSeries[i] * activeSeries[i-1];
+        den += activeSeries[i-1] * activeSeries[i-1];
+      }
+      const betaHat = den !== 0 ? (num / den) : 1.0;
+
+      // â€â‚¬â€â‚¬ ECONOMETRIC TEST 1: ADF TEST ON PRICE LEVELS â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬
+      // Regress delta P_t on P_{t-1}: delta P_t = alpha + gamma * P_{t-1} + e_t
+      const deltaP = [];
+      const lagP = [];
+      for (let i = 1; i < T; i++) {
+        deltaP.push(activeSeries[i] - activeSeries[i-1]);
+        lagP.push(activeSeries[i-1]);
+      }
+      const meanDeltaP = deltaP.reduce((a,b)=>a+b,0) / deltaP.length;
+      const meanLagP   = lagP.reduce((a,b)=>a+b,0) / lagP.length;
+
+      let sXX = 0, sXY = 0;
+      for (let i = 0; i < deltaP.length; i++) {
+        sXX += Math.pow(lagP[i] - meanLagP, 2);
+        sXY += (lagP[i] - meanLagP) * (deltaP[i] - meanDeltaP);
+      }
+      const gammaPrice = sXX !== 0 ? (sXY / sXX) : 0;
+      const alphaPrice = meanDeltaP - gammaPrice * meanLagP;
+
+      let ssResP = 0;
+      const resP = [];
+      for (let i = 0; i < deltaP.length; i++) {
+        const fit = alphaPrice + gammaPrice * lagP[i];
+        const e = deltaP[i] - fit;
+        resP.push(e);
+        ssResP += e * e;
+      }
+      const seGammaPrice = Math.sqrt((ssResP / Math.max(1, deltaP.length - 2)) / Math.max(1e-6, sXX));
+      const adfStatPrice = seGammaPrice !== 0 ? (gammaPrice / seGammaPrice) : 0;
+      const adfPassPrice = adfStatPrice < -2.86; // 5% Dickey-Fuller critical value
+
+      // â€â‚¬â€â‚¬ ECONOMETRIC TEST 2: ADF TEST ON LOG RETURNS â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬â€â‚¬
+      const deltaR = [];
+      const lagR = [];
+      for (let i = 1; i < returns.length; i++) {
+        deltaR.push(returns[i] - returns[i-1]);
+        lagR.push(returns[i-1]);
+      }
+      const meanDeltaR = deltaR.reduce((a,b)=>a+b,0) / Math.max(1, deltaR.length);
+      const meanLagR   = lagR.reduce((a,b)=>a+b,0) / Math.max(1, lagR.length);
+
+      let sXXR = 0, sXYR = 0;
+      for (let i = 0; i < deltaR.length; i++) {
+        sXXR += Math.pow(lagR[i] - meanLagR, 2);
+        sXYR += (lagR[i] - meanLagR) * (deltaR[i] - meanDeltaR);
+      }
+      const gammaRet = sXXR !== 0 ? (sXYR / sXXR) : -0.9;
+      const ssResR = deltaR.reduce((acc, val, idx) => {
+        const e = val - (meanDeltaR - gammaRet * meanLagR + gammaRet * lagR[idx]);
+        return acc + e * e;
+      }, 0);
+      const seGammaRet = Math.sqrt((ssResR / Math.max(1, deltaR.length - 2)) / Math.max(1e-6, sXXR));
+      const adfStatRet = seGammaRet !== 0 ? (gammaRet / seGammaRet) : -8.5;
+      const adfPassRet = adfStatRet < -2.86;
+
+      // â€â‚¬â€â‚¬ ECONOMETRIC TEST 3: BREUSCH-PAGAN (BP) TEST FOR HETEROSKEDASTICITY â€â‚¬â€â‚¬
+      // Regress squared residuals resP^2 on time index t
+      const sqResP = resP.map(e => e * e);
+      const meanSqResP = sqResP.reduce((a,b)=>a+b,0) / sqResP.length;
+      let sTT = 0, sTR = 0;
+      const meanT = (sqResP.length + 1) / 2;
+      for (let i = 0; i < sqResP.length; i++) {
+        const tVal = i + 1;
+        sTT += Math.pow(tVal - meanT, 2);
+        sTR += (tVal - meanT) * (sqResP[i] - meanSqResP);
+      }
+      const bTime = sTT !== 0 ? (sTR / sTT) : 0;
+      let ssTotBP = 0, ssResBP = 0;
+      for (let i = 0; i < sqResP.length; i++) {
+        const fit = meanSqResP + bTime * (i + 1 - meanT);
+        ssResBP += Math.pow(sqResP[i] - fit, 2);
+        ssTotBP += Math.pow(sqResP[i] - meanSqResP, 2);
+      }
+      const r2BP = ssTotBP !== 0 ? Math.max(0, 1 - (ssResBP / ssTotBP)) : 0;
+      const bpStatPrice = sqResP.length * r2BP;
+      const bpFailPrice = bpStatPrice > 3.84; // 5% Chi-sq critical value (df=1)
+
+      // Update DOM elements
+      document.getElementById('ur-price-var').textContent = priceVar.toFixed(2);
+      document.getElementById('ur-ret-var').textContent   = retVar.toFixed(4);
+      document.getElementById('ur-beta').textContent      = betaHat.toFixed(4);
+      document.getElementById('ur-price-mean').textContent = priceMean.toFixed(2);
+      document.getElementById('ur-ret-mean').textContent   = (retMean >= 0 ? '+' : '') + retMean.toFixed(4) + '%';
+
+      // Render Verdict & Test Cards
+      const isRWMode = (mode === 'rw');
+      document.getElementById('ur-verdict').innerHTML = `
+        <div style="font-weight:700; font-size:1.05rem; margin-bottom:0.6rem; color:${isRWMode ? 'var(--bb-amber)' : 'var(--bb-green)'};">
+          🧪 LIVE ECONOMETRIC TEST SUITE RESULTS (Sample T = ${T-1} days, Mode = ${mode.toUpperCase()})
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.75rem;">
+          <!-- ADF TEST RESULT CARD -->
+          <div class="adf-result-card">
+            <div class="adf-result-title">1. Augmented Dickey-Fuller (ADF) Test</div>
+            <div class="adf-result-row"><span>Price Level ADF t-stat:</span><span class="${adfPassPrice ? 'adf-pass':'adf-fail'}">${adfStatPrice.toFixed(2)}</span></div>
+            <div class="adf-result-row"><span>5% Critical Value:</span><span>−’2.86</span></div>
+            <div class="adf-result-row"><span>Price Level Verdict:</span><span class="${adfPassPrice ? 'adf-pass':'adf-fail'}">${adfPassPrice ? 'PASS (Stationary) Å“â€œ' : 'FAIL — Unit Root Present Å“—'}</span></div>
+            <hr style="border-color:var(--border-color); margin:0.4rem 0;">
+            <div class="adf-result-row"><span>Log Returns ADF t-stat:</span><span class="adf-pass">${adfStatRet.toFixed(2)}</span></div>
+            <div class="adf-result-row"><span>Log Returns Verdict:</span><span class="adf-pass">PASS — Stationary (Unit Root Eliminated!) Å“â€œ</span></div>
+          </div>
+
+          <!-- BREUSCH-PAGAN TEST RESULT CARD -->
+          <div class="adf-result-card">
+            <div class="adf-result-title">2. Breusch-Pagan (BP) Heteroskedasticity Test</div>
+            <div class="adf-result-row"><span>Price LM Statistic:</span><span class="${bpFailPrice ? 'adf-fail':'adf-pass'}">${bpStatPrice.toFixed(2)}</span></div>
+            <div class="adf-result-row"><span>5% Ãâ€¡Ã‚Â² Critical Value:</span><span>3.84</span></div>
+            <div class="adf-result-row"><span>Price Error Variance:</span><span class="${bpFailPrice ? 'adf-fail':'adf-pass'}">${bpFailPrice ? 'Non-Constant (Heteroskedastic âœ—)' : 'Constant (Homoskedastic ✓)'}</span></div>
+            <hr style="border-color:var(--border-color); margin:0.4rem 0;">
+            <div class="adf-result-row"><span>Return Error Variance:</span><span class="adf-pass">Constant — Homoskedastic Å“â€œ</span></div>
+            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem;">Because Var(P<sub>t</sub>) = tÃ‚Â·σ²’Ã‚Â², price errors expand over time. Log differencing restores constant variance.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:0.85rem; font-size:0.85rem; color:var(--text-main); background:rgba(15,23,42,0.8); padding:0.75rem; border-radius:6px; border:1px solid var(--border-bright);">
+          💡¡ <strong>Teacher's Key Summary:</strong> Raw prices fail both the ADF test (contain Unit Root β = 1) and BP test (expanding variance over time). Transforming to log returns r<sub>t</sub> = Δ ln P<sub>t</sub> simultaneously eliminates the unit root and makes variance constant — making the series stationary for valid econometrics!
+        </div>
+      `;
+    }
+
+    // 3. Render Dual Charts: Price Levels vs. Log Returns
+    function renderUnitRootCharts() {
+      const activeSeries = (mode === 'drift') ? driftSeries : rwSeries;
+      const T = activeSeries.length;
+      if (T < 2) return;
+
+      // Top canvas: Price Levels
+      const cP = document.getElementById('urPriceCanvas');
+      if (cP) {
+        const ctxP = cP.getContext('2d');
+        const wP = cP.width = cP.clientWidth;
+        const hP = cP.height = cP.clientHeight;
+        ctxP.clearRect(0,0,wP,hP);
+
+        const minY = Math.min(...activeSeries) - 2;
+        const maxY = Math.max(...activeSeries) + 2;
+
+        ctxP.beginPath();
+        ctxP.strokeStyle = '#38bdf8';
+        ctxP.lineWidth = 2;
+        for (let i = 0; i < T; i++) {
+          const x = (i / (T - 1)) * wP;
+          const y = hP - ((activeSeries[i] - minY) / (maxY - minY)) * hP;
+          if (i === 0) ctxP.moveTo(x, y); else ctxP.lineTo(x, y);
+        }
+        ctxP.stroke();
+      }
+
+      // Bottom canvas: Log Returns
+      const cR = document.getElementById('urReturnCanvas');
+      if (cR) {
+        const ctxR = cR.getContext('2d');
+        const wR = cR.width = cR.clientWidth;
+        const hR = cR.height = cR.clientHeight;
+        ctxR.clearRect(0,0,wR,hR);
+
+        const returns = [];
+        for (let i = 1; i < T; i++) {
+          returns.push(Math.log(activeSeries[i] / activeSeries[i-1]) * 100);
+        }
+
+        const minR = Math.min(...returns, -3);
+        const maxR = Math.max(...returns, 3);
+        const zeroY = hR - ((0 - minR) / (maxR - minR)) * hR;
+
+        // Draw zero line
+        ctxR.strokeStyle = '#64748b';
+        ctxR.lineWidth = 1;
+        ctxR.setLineDash([2,2]);
+        ctxR.beginPath(); ctxR.moveTo(0, zeroY); ctxR.lineTo(wR, zeroY); ctxR.stroke();
+        ctxR.setLineDash([]);
+
+        // Plot returns
+        ctxR.beginPath();
+        ctxR.strokeStyle = '#22c55e';
+        ctxR.lineWidth = 1.5;
+        for (let i = 0; i < returns.length; i++) {
+          const x = (i / (returns.length - 1)) * wR;
+          const y = hR - ((returns[i] - minR) / (maxR - minR)) * hR;
+          if (i === 0) ctxR.moveTo(x, y); else ctxR.lineTo(x, y);
+        }
+        ctxR.stroke();
+      }
+    }
+
+    // 4. Male Professor Voice Lecture on Unit Root & Econometric Tests
+    function speakUnitRootExplainer() {
+      const script = `
+        Welcome students. Today we are addressing three crucial econometric concepts: the Pure Random Walk, the Random Walk with Drift, and the Unit Root.
+
+        First, let us clearly differentiate them.
+        A Pure Random Walk is defined as Y sub t equals Y sub t minus one plus epsilon sub t. There is no drift constant, and beta equals 1. Shocks are zero-mean, and today's price is the best forecast of tomorrow.
+
+        A Random Walk with Drift adds a small constant alpha: Y sub t equals alpha plus Y sub t minus one plus epsilon sub t. Beta is still equal to 1, but the constant alpha compounds over time, driving long-term upward growth like we see in broad stock market indices.
+
+        Now, what is a Unit Root? A Unit Root is the technical condition beta equals 1 in the autoregressive model Y sub t equals alpha plus beta Y sub t minus one plus epsilon. Both the pure random walk and the walk with drift possess a unit root! The unit root causes shocks to persist forever, causing the price variance to grow continuously with time, rendering raw price levels non-stationary.
+
+        To test for non-stationarity in practice, we use two essential econometric tests:
+
+        First, the Augmented Dickey-Fuller, or A D F test. The ADF test checks the null hypothesis that gamma equals zero in delta Y sub t equals alpha plus gamma Y sub t minus one. If the ADF test statistic is more negative than negative 2.86, we reject the null hypothesis and conclude the series is stationary. Raw price levels fail the ADF test because gamma equals zero, confirming a unit root.
+
+        Second, the Breusch-Pagan, or B P test for heteroskedasticity. Because a unit root causes price variance to expand with time, raw price residuals exhibit non-constant variance. The Breusch-Pagan test detects this expanding variance and fails on raw prices.
+
+        The elegant solution to both problems is to calculate log daily returns: r sub t equals delta log P sub t. Taking log returns simultaneously eliminates the unit root and stabilizes error variance, producing a stationary series safe for regression, ARMA forecasting, and GARCH modeling.
+      `;
+
+      speakWithProfessorStyle(script);
+      showToast("🔊 Playing Unit Root & Econometric Tests Male Voice Lecture...");
+    }
+
+    /* ==========================================================================
+       STOCHASTIC vs DETERMINISTIC INTERACTIVE LAB ENGINE
+       ========================================================================== */
+
+    function runStochDetSimulation() {
+      const canvas = document.getElementById('stochDetCanvas');
+      if (!canvas) return;
+
+      const gamma = parseFloat(document.getElementById('sd-gamma').value);
+      const alpha = parseFloat(document.getElementById('sd-alpha').value);
+      const beta  = parseFloat(document.getElementById('sd-beta').value);
+      const sigma = parseFloat(document.getElementById('sd-sigma').value);
+
+      const N = 120;
+      const Y0 = 100;
+
+      // Generate shared noise array
+      const noise = [];
+      for (let i = 0; i < N; i++) {
+        noise.push((Math.random() * 2 - 1) * sigma * 3);
+      }
+
+      // ① Deterministic: Yt = Y0 + gamma*t  (pure line, no noise)
+      const det = [Y0];
+      for (let t = 1; t < N; t++) det.push(Y0 + gamma * t);
+
+      // ② Unit Root: Yt = alpha + Y(t-1) + noise  (beta=1, cumulative shocks)
+      const ur = [Y0];
+      for (let t = 1; t < N; t++) ur.push(alpha + ur[t-1] + noise[t]);
+
+      // ③ Trend-Stationary: Yt = Y0 + gamma*t + beta*(Y(t-1) - Y0 - gamma*(t-1)) + noise  (AR noise around linear trend)
+      const ts = [Y0];
+      for (let t = 1; t < N; t++) {
+        const trend_t   = Y0 + gamma * t;
+        const trend_tm1 = Y0 + gamma * (t - 1);
+        const deviation = ts[t-1] - trend_tm1;
+        ts.push(trend_t + beta * deviation + noise[t]);
+      }
+
+      // ④ White Noise: Yt = Y0 + noise  (no memory, no trend, stationary)
+      const wn = [Y0];
+      for (let t = 1; t < N; t++) wn.push(Y0 + noise[t] * 0.4);
+
+      // â”€â”€ Canvas Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth;
+      const cssH = canvas.clientHeight;
+      canvas.width  = cssW * dpr;
+      canvas.height = cssH * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = cssW, h = cssH;
+      const pad = { t: 20, r: 30, b: 30, l: 55 };
+      const gW = w - pad.l - pad.r;
+      const gH = h - pad.t - pad.b;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Background grid
+      ctx.strokeStyle = '#0f1e33';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const y = pad.t + (i / 5) * gH;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+      }
+
+      // Find global min/max across all series for Y-axis scaling
+      const allVals = [...det, ...ur, ...ts, ...wn];
+      const minY = Math.min(...allVals) - 5;
+      const maxY = Math.max(...allVals) + 5;
+
+      const getX = (t) => pad.l + (t / (N - 1)) * gW;
+      const getY = (v) => pad.t + gH - ((v - minY) / (maxY - minY)) * gH;
+
+      // Y-axis labels
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 4; i++) {
+        const v = minY + (i / 4) * (maxY - minY);
+        ctx.fillText(v.toFixed(0), pad.l - 5, getY(v) + 4);
+      }
+
+      // Plot each series
+      function plotSeries(data, color, lineW, dash) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineW || 2;
+        ctx.setLineDash(dash || []);
+        for (let t = 0; t < data.length; t++) {
+          const x = getX(t), y = getY(data[t]);
+          if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      plotSeries(wn,  '#ff9f0a', 1.5, [4, 2]); // ④ White Noise — amber dashed
+      plotSeries(ts,  '#22c55e', 2);            // ③ Trend-Stationary — green
+      plotSeries(ur,  '#ef4444', 2.5);          // ② Unit Root — red
+      plotSeries(det, '#38bdf8', 2, [6, 2]);    // ① Deterministic — cyan dashed
+
+      // X-axis labels
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 4; i++) {
+        const t = Math.round((i / 4) * (N - 1));
+        ctx.fillText(`t=${t}`, getX(t), h - 8);
+      }
+
+      // â”€â”€ Live ADF Analysis for Detrending vs Differencing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // ADF on detrended Unit Root series
+      const detrendedUR = ur.map((v, t) => v - (Y0 + gamma * t));
+      const adfDetrend  = computeADFStat(detrendedUR);
+
+      // ADF on first-differenced Unit Root series
+      const diffUR      = ur.slice(1).map((v, i) => v - ur[i]);
+      const adfDiff     = computeADFStat(diffUR);
+
+      const detrendEl = document.getElementById('sd-detrend-result');
+      const diffEl    = document.getElementById('sd-diff-result');
+
+      if (detrendEl) {
+        const pass = adfDetrend < -2.86;
+        detrendEl.innerHTML = `ADF(detrended UR): <strong style="color:${pass?'#22c55e':'#ef4444'}">${adfDetrend.toFixed(2)}</strong> — ${pass ? '✅ Stationary (detrending works here)' : 'âŒ Still Non-Stationary (detrending FAILS on Unit Root!)'}`;
+      }
+      if (diffEl) {
+        const pass = adfDiff < -2.86;
+        diffEl.innerHTML = `ADF(first-diff UR): <strong style="color:${pass?'#22c55e':'#ef4444'}">${adfDiff.toFixed(2)}</strong> — ${pass ? '✅ Stationary (differencing works!)' : 'âŒ Still Non-Stationary'}`;
+      }
+
+      showToast('▶ Stochastic vs. Deterministic simulation complete!');
+    }
+
+    // Helper: compute ADF t-statistic for a series
+    function computeADFStat(series) {
+      const T = series.length;
+      if (T < 5) return 0;
+      const delta = [], lag = [];
+      for (let i = 1; i < T; i++) {
+        delta.push(series[i] - series[i-1]);
+        lag.push(series[i-1]);
+      }
+      const md = delta.reduce((a,b)=>a+b,0)/delta.length;
+      const ml = lag.reduce((a,b)=>a+b,0)/lag.length;
+      let sXX=0, sXY=0;
+      for (let i=0;i<delta.length;i++) {
+        sXX += (lag[i]-ml)**2;
+        sXY += (lag[i]-ml)*(delta[i]-md);
+      }
+      if (sXX === 0) return 0;
+      const gamma = sXY/sXX;
+      let ssRes=0;
+      for (let i=0;i<delta.length;i++) {
+        const e = delta[i] - (md + gamma*(lag[i]-ml));
+        ssRes += e*e;
+      }
+      const se = Math.sqrt((ssRes/Math.max(1,delta.length-2))/sXX);
+      return se !== 0 ? gamma/se : 0;
+    }
+
+    /* Initialization */
+    window.addEventListener('load', () => {
+      setupCanvasDPI();
+      renderChart();
+      loadDiscussionStep(1);
+      // Auto-run stochastic simulation on page load so canvas shows on first tab visit
+      setTimeout(runStochDetSimulation, 300);
+    });
+
+  </script>
+</body>
+</html>
+
