@@ -1285,6 +1285,20 @@
         💡 Multi-Day Tabs (30, 100, 200, 300 Days & Reset) are in the top header of the Market Chart panel.
       </div>
 
+      <!-- Model & Drift Settings -->
+      <div class="control-group" onclick="event.stopPropagation();">
+        <div class="control-label">
+          <span>MODEL ARCHITECTURE</span>
+          <span class="info-tag" onclick="explainComponent('model-architecture')">ℹ️ Info</span>
+        </div>
+        <div class="mode-selector">
+          <div class="mode-option" id="mode-rw" onclick="setMode('rw')">Random Walk</div>
+          <div class="mode-option drift-mode" id="mode-drift" onclick="setMode('drift')">Walk + Drift</div>
+          <div class="mode-option compare-mode active" id="mode-compare" onclick="setMode('compare')">Compare Both</div>
+        </div>
+      </div>
+
+      <div class="control-group" onclick="event.stopPropagation();">
         <div class="control-label">
           <span>DAILY POSITIVE DRIFT (μ)</span>
           <span id="drift-val-label" style="color:var(--bb-green); font-weight:700;">+0.10% / day</span>
@@ -2321,7 +2335,7 @@ This has a profound practical implication: looking at three months of stock mark
 
     /* SIMULATION STATE */
     let currentDay = 0;
-    let mode = 'rw'; // 'rw', 'drift', 'compare'
+    let mode = 'compare'; // 'rw', 'drift', 'compare'
     let driftRate = 0.10; // +0.10% per observation default
     let isAutoRunning = false;
     let autoRunInterval = null;
@@ -2436,14 +2450,14 @@ This has a profound practical implication: looking at three months of stock mark
       ctx.stroke();
       ctx.restore();
 
-      // Draw Series 1: Random Walk (Blue)
+      // Draw Series 1: Random Walk (Pure Noise - Blue)
       if (mode === 'rw' || mode === 'compare') {
-        drawLineSeries(rwSeries, '#38bdf8', getX, getY);
+        drawLineSeries(rwSeries, '#38bdf8', getX, getY, 2.5);
       }
 
       // Draw Series 2: Random Walk with Drift (Green)
       if (mode === 'drift' || mode === 'compare') {
-        drawLineSeries(driftSeries, '#22c55e', getX, getY);
+        drawLineSeries(driftSeries, '#22c55e', getX, getY, 3.0);
       }
 
       // Draw X-Axis Labels
@@ -2456,12 +2470,12 @@ This has a profound practical implication: looking at three months of stock mark
       }
     }
 
-    function drawLineSeries(data, strokeColor, getX, getY) {
+    function drawLineSeries(data, strokeColor, getX, getY, customWidth) {
       if (data.length < 1) return;
 
       ctx.beginPath();
       ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = customWidth || 2.5;
       ctx.lineJoin = 'round';
 
       for (let i = 0; i < data.length; i++) {
@@ -2514,13 +2528,16 @@ This has a profound practical implication: looking at three months of stock mark
       const nextRW = Math.max(10, parseFloat((lastRW + totalShock).toFixed(2)));
       rwSeries.push(nextRW);
 
-      const nextDrift = Math.max(10, parseFloat((lastDrift + driftRate + totalShock).toFixed(2)));
+      const numericDrift = Number(driftRate) || 0.10;
+      const nextDrift = Math.max(10, parseFloat((lastDrift + numericDrift + totalShock).toFixed(2)));
       driftSeries.push(nextDrift);
 
       // UI Updates
       triggerNewsFlash(eventObj, totalShock);
       updateMetrics(totalShock);
       renderChart();
+      refreshUnitRootStats();
+      renderUnitRootCharts();
 
       // Auto Pause at Day 20
       if (currentDay === 20 && !hasPausedAtDay20) {
@@ -2591,24 +2608,41 @@ This has a profound practical implication: looking at three months of stock mark
     }
 
     function runMultiDays(count) {
-      if (isAutoRunning) stopAutoRun();
-      let stepsRemaining = count;
+      stopAutoRun();
+
+      const targetDay = (currentDay < count) ? count : (currentDay + count);
       isAutoRunning = true;
-      const speed = count > 150 ? 30 : 60; // Faster interval for multi-hundred day simulation
+      const speed = count >= 100 ? 15 : 35; // Fast, responsive step speed
 
       autoRunInterval = setInterval(() => {
-        if (stepsRemaining <= 0 || (currentDay === 20 && !hasPausedAtDay20)) {
+        if (!isAutoRunning || currentDay >= targetDay) {
           stopAutoRun();
           return;
         }
+
         stepNextDay();
-        stepsRemaining--;
+
+        // Check Day 20 classroom auto-pause
+        if (currentDay === 20 && !hasPausedAtDay20) {
+          hasPausedAtDay20 = true;
+          stopAutoRun();
+          showToast("⏸️ Auto-Paused on Day 20 for Classroom Discussion!");
+          highlightDiscussionCard();
+          return;
+        }
+
+        if (currentDay >= targetDay) {
+          stopAutoRun();
+        }
       }, speed);
     }
 
     function stopAutoRun() {
       isAutoRunning = false;
-      if (autoRunInterval) clearInterval(autoRunInterval);
+      if (autoRunInterval) {
+        clearInterval(autoRunInterval);
+        autoRunInterval = null;
+      }
     }
 
     function resetSimulation() {
@@ -2626,6 +2660,8 @@ This has a profound practical implication: looking at three months of stock mark
 
       updateMetrics(0.00);
       renderChart();
+      refreshUnitRootStats();
+      renderUnitRootCharts();
       showToast("Market simulator reset to Day 0.");
     }
 
@@ -2640,13 +2676,17 @@ This has a profound practical implication: looking at three months of stock mark
 
       updateMetrics(shocksHistory[shocksHistory.length - 1] || 0);
       renderChart();
+      refreshUnitRootStats();
+      renderUnitRootCharts();
     }
 
     function updateDriftFromSlider(val) {
-      driftRate = parseFloat(val);
+      driftRate = Number(val) || 0;
       document.getElementById('drift-val-label').textContent = `+${driftRate.toFixed(2)}% / day`;
-      document.getElementById('metric-drift-val').textContent = `+${driftRate.toFixed(2)}%`;
-      document.getElementById('legend-drift-val').textContent = `${driftRate.toFixed(2)}%`;
+      const mDrift = document.getElementById('metric-drift-val');
+      if (mDrift) mDrift.textContent = `+${driftRate.toFixed(2)}%`;
+      const lDrift = document.getElementById('legend-drift-val');
+      if (lDrift) lDrift.textContent = `${driftRate.toFixed(2)}%`;
       renderChart();
     }
 
@@ -3163,11 +3203,11 @@ This has a profound practical implication: looking at three months of stock mark
 
     // 3. Render Dual Charts: Price Levels vs. Log Returns
     function renderUnitRootCharts() {
-      const activeSeries = (mode === 'drift') ? driftSeries : rwSeries;
-      const T = activeSeries.length;
+      const activeSeries = (mode === 'rw') ? rwSeries : driftSeries;
+      const T = rwSeries.length;
       if (T < 2) return;
 
-      // Top canvas: Price Levels
+      // Top canvas: Price Levels (Draws both Blue RW and Green Drift in Compare mode)
       const cP = document.getElementById('urPriceCanvas');
       if (cP) {
         const ctxP = cP.getContext('2d');
@@ -3175,18 +3215,27 @@ This has a profound practical implication: looking at three months of stock mark
         const hP = cP.height = cP.clientHeight;
         ctxP.clearRect(0,0,wP,hP);
 
-        const minY = Math.min(...activeSeries) - 2;
-        const maxY = Math.max(...activeSeries) + 2;
+        let allVals = [];
+        if (mode === 'rw' || mode === 'compare') allVals.push(...rwSeries);
+        if (mode === 'drift' || mode === 'compare') allVals.push(...driftSeries);
 
-        ctxP.beginPath();
-        ctxP.strokeStyle = '#38bdf8';
-        ctxP.lineWidth = 2;
-        for (let i = 0; i < T; i++) {
-          const x = (i / (T - 1)) * wP;
-          const y = hP - ((activeSeries[i] - minY) / (maxY - minY)) * hP;
-          if (i === 0) ctxP.moveTo(x, y); else ctxP.lineTo(x, y);
+        const minY = Math.min(...allVals) - 2;
+        const maxY = Math.max(...allVals) + 2;
+
+        function plotURLine(seriesData, color) {
+          ctxP.beginPath();
+          ctxP.strokeStyle = color;
+          ctxP.lineWidth = 2;
+          for (let i = 0; i < seriesData.length; i++) {
+            const x = (i / (seriesData.length - 1)) * wP;
+            const y = hP - ((seriesData[i] - minY) / (maxY - minY)) * hP;
+            if (i === 0) ctxP.moveTo(x, y); else ctxP.lineTo(x, y);
+          }
+          ctxP.stroke();
         }
-        ctxP.stroke();
+
+        if (mode === 'rw' || mode === 'compare') plotURLine(rwSeries, '#38bdf8');
+        if (mode === 'drift' || mode === 'compare') plotURLine(driftSeries, '#22c55e');
       }
 
       // Bottom canvas: Log Returns
@@ -3416,10 +3465,13 @@ This has a profound practical implication: looking at three months of stock mark
     /* Initialization */
     window.addEventListener('load', () => {
       setupCanvasDPI();
-      renderChart();
+      setMode('compare');
       loadDiscussionStep(1);
-      // Auto-run stochastic simulation on page load so canvas shows on first tab visit
-      setTimeout(runStochDetSimulation, 300);
+      setTimeout(() => {
+        refreshUnitRootStats();
+        renderUnitRootCharts();
+        runStochDetSimulation();
+      }, 300);
     });
 
   </script>
